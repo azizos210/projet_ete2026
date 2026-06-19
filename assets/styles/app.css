@@ -1,0 +1,35 @@
+/* ================================
+   Styles globaux — à personnaliser
+   ================================ */
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-size: 1.3rem;
+    letter-spacing: 0.5px;
+}
+
+.card {
+    border: none;
+    border-radius: 0.75rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.4rem 1.2rem rgba(0,0,0,.1) !important;
+}
+
+.alert {
+    border-left: 4px solid;
+    border-radius: 0.5rem;
+}
+.alert-success { border-left-color: #198754; }
+.alert-danger  { border-left-color: #dc3545; }
+.alert-warning { border-left-color: #ffc107; }
+.alert-info    { border-left-color: #0dcaf0; }
+
+/* Ajoutez vos styles ici */
