@@ -1,12 +1,81 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil{% endblock %}
+{% block title %}Accueil — Plateforme Hospitalière{% endblock %}
 
 {% block body %}
 <div class="text-center py-5">
-    <h1 class="display-4 fw-bold">Bienvenue</h1>
-    <p class="lead text-muted">Votre application Symfony est prête.</p>
-    <hr class="my-4 w-25 mx-auto">
-    <p class="text-muted">Commencez à construire votre projet ici.</p>
+    <div class="mb-4">
+        <i class="fas fa-hospital text-primary" style="font-size: 4rem; color: #006D77 !important;"></i>
+    </div>
+    <h1 class="display-4 fw-bold" style="color: #006D77;">Plateforme de Gestion Hospitalière</h1>
+    <p class="lead text-muted mb-5">Système intégré de gestion des consultations, dossiers médicaux et administration</p>
+
+    <div class="row justify-content-center g-4 mt-3">
+        <div class="col-md-5">
+            <div class="card h-100 shadow-sm border-0" style="border-radius: 16px;">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-desktop" style="font-size: 3rem; color: #006D77;"></i>
+                    </div>
+                    <h4 class="fw-bold">Frontend Dashboard</h4>
+                    <p class="text-muted">Espace patients, médecins, infirmiers et secrétaires</p>
+                    <div class="d-grid gap-2">
+                        <a href="/front" class="btn btn-lg px-4" style="background: #006D77; color: #fff; border-radius: 10px; padding: 12px;">
+                            <i class="fas fa-external-link-alt me-2"></i>Accéder au Frontend
+                        </a>
+                        <small class="text-muted mt-2">
+                            <i class="fas fa-check-circle text-success"></i> React + Material Design
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card h-100 shadow-sm border-0" style="border-radius: 16px;">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-cogs" style="font-size: 3rem; color: #E29578;"></i>
+                    </div>
+                    <h4 class="fw-bold">Backend Administration</h4>
+                    <p class="text-muted">Gestion des utilisateurs, rôles, statistiques et audit</p>
+                    <div class="d-grid gap-2">
+                        <a href="/back" class="btn btn-lg px-4" style="background: #E29578; color: #fff; border-radius: 10px; padding: 12px;">
+                            <i class="fas fa-external-link-alt me-2"></i>Accéder au Backend
+                        </a>
+                        <small class="text-muted mt-2">
+                            <i class="fas fa-check-circle text-success"></i> Symfony + Twig + Bootstrap
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5 justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-center gap-4 flex-wrap">
+                <div class="text-center px-3">
+                    <i class="fas fa-user-md fa-2x mb-2" style="color: #006D77;"></i>
+                    <h6>Médecins</h6>
+                </div>
+                <div class="text-center px-3">
+                    <i class="fas fa-user fa-2x mb-2" style="color: #0288D1;"></i>
+                    <h6>Patients</h6>
+                </div>
+                <div class="text-center px-3">
+                    <i class="fas fa-user-nurse fa-2x mb-2" style="color: #2E7D32;"></i>
+                    <h6>Infirmiers</h6>
+                </div>
+                <div class="text-center px-3">
+                    <i class="fas fa-headset fa-2x mb-2" style="color: #E29578;"></i>
+                    <h6>Secrétaires</h6>
+                </div>
+                <div class="text-center px-3">
+                    <i class="fas fa-shield-alt fa-2x mb-2" style="color: #D32F2F;"></i>
+                    <h6>Administrateurs</h6>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

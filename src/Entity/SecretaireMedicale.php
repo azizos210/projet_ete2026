@@ -49,4 +49,6 @@ class SecretaireMedicale
     public function getRendezVousCrees(): Collection { return $this->rendezVousCrees; }
     public function getFacturesEmises(): Collection { return $this->facturesEmises; }
     public function getTicketsTraites(): Collection { return $this->ticketsTraites; }
+
+    public function __toString(): string { return $this->getUtilisateur()?->getNomComplet() ?? 'Secrétaire #' . $this->getId(); }
 }

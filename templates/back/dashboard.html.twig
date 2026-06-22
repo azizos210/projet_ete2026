@@ -1,0 +1,197 @@
+{% extends 'back/layout.html.twig' %}
+
+{% block title %}Tableau de bord — Back Office{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block body %}
+<div class="row g-4 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card stat-card text-white" style="background: linear-gradient(135deg, #006D77, #004D56);">
+            <div class="card-body">
+                <i class="fas fa-users icon-bg"></i>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1 opacity-75">Utilisateurs</h6>
+                        <div class="fs-2 fw-bold">{{ stats.utilisateurs }}</div>
+                    </div>
+                    <i class="fas fa-users fs-1 opacity-50"></i>
+                </div>
+                <small class="opacity-75">Total des comptes</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card stat-card text-white" style="background: linear-gradient(135deg, #0288D1, #01579B);">
+            <div class="card-body">
+                <i class="fas fa-user-injured icon-bg"></i>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1 opacity-75">Patients</h6>
+                        <div class="fs-2 fw-bold">{{ stats.patients }}</div>
+                    </div>
+                    <i class="fas fa-user-injured fs-1 opacity-50"></i>
+                </div>
+                <small class="opacity-75">Patients enregistrés</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card stat-card text-white" style="background: linear-gradient(135deg, #E29578, #C9785E);">
+            <div class="card-body">
+                <i class="fas fa-user-md icon-bg"></i>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1 opacity-75">Médecins</h6>
+                        <div class="fs-2 fw-bold">{{ stats.medecins }}</div>
+                    </div>
+                    <i class="fas fa-user-md fs-1 opacity-50"></i>
+                </div>
+                <small class="opacity-75">Médecins actifs</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card stat-card text-white" style="background: linear-gradient(135deg, #2E7D32, #1B5E20);">
+            <div class="card-body">
+                <i class="fas fa-calendar-check icon-bg"></i>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1 opacity-75">Rendez-vous</h6>
+                        <div class="fs-2 fw-bold">{{ stats.rendez_vous }}</div>
+                    </div>
+                    <i class="fas fa-calendar-check fs-1 opacity-50"></i>
+                </div>
+                <small class="opacity-75">Total rendez-vous</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card stat-card text-white" style="background: linear-gradient(135deg, #6A1B9A, #4A148C);">
+            <div class="card-body">
+                <i class="fas fa-stethoscope icon-bg"></i>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1 opacity-75">Consultations</h6>
+                        <div class="fs-2 fw-bold">{{ stats.consultations }}</div>
+                    </div>
+                    <i class="fas fa-stethoscope fs-1 opacity-50"></i>
+                </div>
+                <small class="opacity-75">Consultations</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card stat-card text-white" style="background: linear-gradient(135deg, #F57C00, #E65100);">
+            <div class="card-body">
+                <i class="fas fa-prescription icon-bg"></i>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1 opacity-75">Prescriptions</h6>
+                        <div class="fs-2 fw-bold">{{ stats.prescriptions }}</div>
+                    </div>
+                    <i class="fas fa-prescription fs-1 opacity-50"></i>
+                </div>
+                <small class="opacity-75">Prescriptions actives</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card stat-card text-white" style="background: linear-gradient(135deg, #00838F, #004D54);">
+            <div class="card-body">
+                <i class="fas fa-user-nurse icon-bg"></i>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1 opacity-75">Infirmiers</h6>
+                        <div class="fs-2 fw-bold">{{ stats.infirmiers }}</div>
+                    </div>
+                    <i class="fas fa-user-nurse fs-1 opacity-50"></i>
+                </div>
+                <small class="opacity-75">Personnel soignant</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card stat-card text-white" style="background: linear-gradient(135deg, #C62828, #B71C1C);">
+            <div class="card-body">
+                <i class="fas fa-file-invoice icon-bg"></i>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1 opacity-75">Factures</h6>
+                        <div class="fs-2 fw-bold">{{ stats.factures }}</div>
+                    </div>
+                    <i class="fas fa-file-invoice fs-1 opacity-50"></i>
+                </div>
+                <small class="opacity-75">Factures émises</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card table-card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0"><i class="fas fa-user-md me-2 text-primary"></i>Derniers médecins</h5>
+                <a href="{{ path('back_medecins') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nom</th>
+                            <th>Spécialité</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for medecin in derniers_medecins %}
+                        <tr>
+                            <td>{{ medecin.prenom }} {{ medecin.nom }}</td>
+                            <td><span class="badge bg-info">{{ medecin.specialite }}</span></td>
+                            <td>{{ medecin.email }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-center text-muted py-3">Aucun médecin</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card table-card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0"><i class="fas fa-calendar-check me-2 text-success"></i>Prochains rendez-vous</h5>
+                <a href="{{ path('back_rendez_vous') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Patient</th>
+                            <th>Médecin</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rdv in prochains_rdv %}
+                        <tr>
+                            <td>{{ rdv.patient.prenom }} {{ rdv.patient.nom }}</td>
+                            <td>{{ rdv.medecin.prenom }} {{ rdv.medecin.nom }}</td>
+                            <td>{{ rdv.dateHeure|date('d/m/Y H:i') }}</td>
+                            <td><span class="badge {% if rdv.statut == 'confirme' %}bg-success{% elseif rdv.statut == 'en_attente' %}bg-warning{% else %}bg-secondary{% endif %}">{{ rdv.statut }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">Aucun rendez-vous</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
