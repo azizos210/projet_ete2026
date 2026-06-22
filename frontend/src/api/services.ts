@@ -21,7 +21,7 @@ export const authApi = {
     const response = await api.post('/api/login_check', { email, password });
     return response.data;
   },
-  register: async (data: { email: string; password: string; firstName: string; lastName: string }) => {
+  register: async (data: { email: string; password: string; firstName: string; lastName: string; role?: string }) => {
     const response = await api.post(`${AUTH_BASE}/register`, data);
     return response.data;
   },

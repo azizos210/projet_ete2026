@@ -41,12 +41,19 @@ class AuthController extends AbstractController
             return $this->json(['message' => 'Cet email est déjà utilisé'], Response::HTTP_CONFLICT);
         }
 
+        $allowedRoles = ['ROLE_PATIENT', 'ROLE_MEDECIN', 'ROLE_ADMIN'];
+        $requestedRole = $data['role'] ?? 'ROLE_USER';
+
+        if (!in_array($requestedRole, $allowedRoles, true)) {
+            $requestedRole = 'ROLE_USER';
+        }
+
         $user = new User();
         $user->setEmail($data['email']);
         $user->setFirstName($data['firstName']);
         $user->setLastName($data['lastName']);
         $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
-        $user->setRoles(['ROLE_USER']);
+        $user->setRoles([$requestedRole]);
 
         $errors = $validator->validate($user);
         if (count($errors) > 0) {

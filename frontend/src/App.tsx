@@ -12,11 +12,15 @@ import PatientDossierPage from './pages/patient/PatientDossierPage';
 import PatientDashboardPage from './pages/patient/PatientDashboardPage';
 import MedecinConsultationsPage from './pages/medecin/MedecinConsultationsPage';
 import MedecinRdvPage from './pages/medecin/MedecinRdvPage';
+import LoginPage from './pages/auth/LoginPage';
+import ClientPage from './pages/ClientPage';
 
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/client" element={<ClientPage />} />
 
       <Route path="/app" element={<DashboardLayout />}>
         <Route index element={<Navigate to="/app/dashboard" replace />} />
@@ -30,7 +34,7 @@ function AppRoutes() {
         <Route path="medecin/rendez-vous" element={<MedecinRdvPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
