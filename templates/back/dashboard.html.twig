@@ -149,9 +149,9 @@
                     <tbody>
                         {% for medecin in derniers_medecins %}
                         <tr>
-                            <td>{{ medecin.prenom }} {{ medecin.nom }}</td>
+                            <td>{{ medecin.utilisateur.prenom }} {{ medecin.utilisateur.nom }}</td>
                             <td><span class="badge bg-info">{{ medecin.specialite }}</span></td>
-                            <td>{{ medecin.email }}</td>
+                            <td>{{ medecin.utilisateur.email }}</td>
                         </tr>
                         {% else %}
                         <tr><td colspan="3" class="text-center text-muted py-3">Aucun médecin</td></tr>

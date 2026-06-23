@@ -27,7 +27,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { authApi } from '../../api/services';
 
 const ROLE_CONFIG: Record<string, { label: string; icon: React.ReactNode; bgImg: string; redirect: string }> = {
-  patient: { label: 'Patient', icon: <PersonIcon />, bgImg: '/images/p.png', redirect: '/app/dashboard' },
+  patient: { label: 'Patient', icon: <PersonIcon />, bgImg: '/images/p.png', redirect: '/argon/pages/dashboard.html' },
   medecin: { label: 'Médecin', icon: <LocalHospitalIcon />, bgImg: '/images/m.png', redirect: '/app/dashboard' },
   admin: { label: 'Administrateur', icon: <AdminPanelSettingsIcon />, bgImg: '/images/te.png', redirect: '/back' },
 };
@@ -54,13 +54,13 @@ export default function LoginPage() {
     setError('');
     try {
       await login(email, password);
-      if (config.redirect === '/back') {
+      if (config.redirect === '/back' || config.redirect === '/argon/pages/dashboard.html') {
         window.location.href = config.redirect;
       } else {
         navigate(config.redirect);
       }
-    } catch {
-      setError(t('common.error'));
+    } catch (err: any) {
+      setError(err?.message || t('common.error'));
     }
   };
 

@@ -2,11 +2,11 @@
 
 namespace App\Controller\Api;
 
-use App\Entity\User;
 use App\Entity\Consultation;
 use App\Entity\DossierMedical;
 use App\Entity\Patient;
 use App\Entity\RendezVous;
+use App\Entity\Utilisateur;
 use App\Entity\DocumentMedical;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,9 +25,9 @@ class PatientApiController extends AbstractController
     {
         $user = $this->getUser();
         if (!$user) return null;
-        $utilisateur = $this->em->getRepository(User::class)->findOneBy(['email' => $user->getEmail()]);
-        $patient = $this->em->getRepository(Patient::class)->findOneBy(['utilisateur' => $utilisateur]);
-        return $patient;
+        $utilisateur = $this->em->getRepository(Utilisateur::class)->findOneBy(['email' => $user->getEmail()]);
+        if (!$utilisateur) return null;
+        return $this->em->getRepository(Patient::class)->findOneBy(['utilisateur' => $utilisateur]);
     }
 
     #[Route('/dashboard', name: 'dashboard', methods: ['GET'])]

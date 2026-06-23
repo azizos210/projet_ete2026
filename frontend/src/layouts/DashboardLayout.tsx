@@ -86,7 +86,9 @@ export default function DashboardLayout() {
   const drawerWidth = collapsed ? 72 : DRAWER_WIDTH;
 
   const navItems: NavItem[] = [
-    { label: t('nav.dashboard'), icon: <DashboardIcon />, path: '/app/dashboard' },
+    ...(hasRole('ROLE_MEDECIN') ? [
+      { label: t('nav.dashboard'), icon: <DashboardIcon />, path: '/app/dashboard' },
+    ] : []),
     ...(hasRole('ROLE_ADMIN') || hasRole('ROLE_DIRECTEUR_MEDICAL') ? [
       { label: t('nav.patients'), icon: <PeopleIcon />, path: '/app/admin/patients' },
       { label: t('nav.users'), icon: <SecurityIcon />, path: '/app/admin/users' },

@@ -61,6 +61,31 @@ class AuthController extends AbstractController
         }
 
         $em->persist($user);
+
+        $utilisateur = new Utilisateur();
+        $utilisateur->setEmail($data['email']);
+        $utilisateur->setNom($data['lastName']);
+        $utilisateur->setPrenom($data['firstName']);
+        $utilisateur->setPassword($passwordHasher->hashPassword($utilisateur, $data['password']));
+        $utilisateur->setRoles([$requestedRole]);
+        $em->persist($utilisateur);
+
+        $roleEntity = match ($requestedRole) {
+            'ROLE_PATIENT' => new Patient(),
+            'ROLE_MEDECIN' => new Medecin(),
+            'ROLE_ADMIN' => new Administrateur(),
+            default => null,
+        };
+
+        if ($roleEntity !== null) {
+            $roleEntity->setUtilisateur($utilisateur);
+            if ($roleEntity instanceof Medecin) {
+                $roleEntity->setSpecialite('Généraliste');
+                $roleEntity->setNumeroOrdre('TEMP-' . uniqid());
+            }
+            $em->persist($roleEntity);
+        }
+
         $em->flush();
 
         return $this->json([

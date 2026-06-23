@@ -3,11 +3,51 @@
 {% block title %}{{ entite }} — Back Office{% endblock %}
 {% block page_title %}{{ entite }}{% endblock %}
 
+{% set show_route = 'back_' ~ entite_slug ~ '_show' %}
+{% set new_route = 'back_' ~ entite_slug ~ '_new' %}
+{% set edit_route = 'back_' ~ entite_slug ~ '_edit' %}
+{% set delete_route = 'back_' ~ entite_slug ~ '_delete' %}
+{% set csrf_prefix = delete_route|replace({ 'back_': '', '_delete': '' }) %}
+{% set search_query = search_query|default('') %}
+{% set sort_field = sort_field|default('') %}
+{% set sort_order = sort_order|default('DESC') %}
+{% set filters = filters|default([]) %}
+{% set sortable_fields = sortable_fields|default([]) %}
+{% set filter_values = filter_values|default({}) %}
+
+{% macro qs(params) %}{% for k,v in params %}{% if v != '' %}&{{ k }}={{ v }}{% endif %}{% endfor %}{% endmacro %}
+
 {% block body %}
+{% set base_params = { 'q': search_query, 'sort': sort_field, 'order': sort_order } %}
+{% for f in filters %}{% set base_params = base_params|merge({ (f.name): f.selected }) %}{% endfor %}
+
 <div class="card table-card">
     <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
         <h5 class="mb-0"><i class="fas fa-list me-2 text-primary"></i>Liste des {{ entite|lower }}</h5>
-        <button class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Ajouter</button>
+        <a href="{{ path(new_route) }}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Ajouter</a>
+    </div>
+    <div class="card-body p-3">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small mb-1">Recherche</label>
+                <input type="text" name="q" class="form-control" placeholder="Rechercher..." value="{{ search_query }}">
+            </div>
+            {% for filter in filters %}
+            <div class="col-md-2">
+                <label class="form-label small mb-1">{{ filter.label }}</label>
+                <select name="{{ filter.name }}" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">Tous</option>
+                    {% for opt in filter.options %}
+                    <option value="{{ opt.value }}" {% if filter.selected == opt.value %}selected{% endif %}>{{ opt.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endfor %}
+            <div class="col-md-auto d-flex gap-1">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search me-1"></i>Filtrer</button>
+                <a href="{{ path(route_prefix) }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-times"></i></a>
+            </div>
+        </form>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -15,7 +55,19 @@
                 <thead class="table-light">
                     <tr>
                         {% for colonne in colonnes %}
-                        <th>{{ colonne }}</th>
+                        <th>
+                            {% if sortable_fields[loop.index0] is defined %}
+                            {% set sf = sortable_fields[loop.index0] %}
+                            {% set new_order = (sort_field == sf and sort_order == 'ASC') ? 'DESC' : 'ASC' %}
+                            {% set sort_icon = (sort_field == sf) ? (sort_order == 'ASC' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort' %}
+                            {% set href_params = base_params|merge({ 'sort': sf, 'order': new_order }) %}
+                            <a href="?{{ href_params|url_encode }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                {{ colonne }} <i class="fas {{ sort_icon }} small opacity-50"></i>
+                            </a>
+                            {% else %}
+                            {{ colonne }}
+                            {% endif %}
+                        </th>
                         {% endfor %}
                         <th class="text-center">Actions</th>
                     </tr>
@@ -27,9 +79,12 @@
                         <td>{{ get_cell_value(ligne, champ)|raw }}</td>
                         {% endfor %}
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary" title="Voir"><i class="fas fa-eye"></i></button>
-                            <button class="btn btn-sm btn-outline-warning" title="Modifier"><i class="fas fa-edit"></i></button>
-                            <button class="btn btn-sm btn-outline-danger" title="Supprimer"><i class="fas fa-trash"></i></button>
+                            <a href="{{ path(show_route, { id: ligne.id }) }}" class="btn btn-sm btn-outline-primary" title="Voir"><i class="fas fa-eye"></i></a>
+                            <a href="{{ path(edit_route, { id: ligne.id }) }}" class="btn btn-sm btn-outline-warning" title="Modifier"><i class="fas fa-edit"></i></a>
+                            <form method="post" action="{{ path(delete_route, { id: ligne.id }) }}" style="display:inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible.')">
+                                <input type="hidden" name="_token" value="{{ csrf_token(csrf_prefix ~ '_delete_' ~ ligne.id) }}">
+                                <button class="btn btn-sm btn-outline-danger" title="Supprimer"><i class="fas fa-trash"></i></button>
+                            </form>
                         </td>
                     </tr>
                     {% else %}
@@ -43,6 +98,11 @@
                 </tbody>
             </table>
         </div>
+        {% if total is defined and total > 0 %}
+        <div class="card-footer bg-white text-muted small">
+            {{ total }} résultat(s)
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

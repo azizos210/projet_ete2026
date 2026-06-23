@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { patientApi } from '../../api/services';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
@@ -90,7 +93,36 @@ function StatCard({ title, value, icon, color, subtitle }: { title: string; valu
 
 export default function PatientDashboardPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [patientInfo, setPatientInfo] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    window.location.href = '/argon/pages/dashboard.html';
+  }, [user]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await patientApi.getDashboard();
+        setPatientInfo(data);
+      } catch {
+        setPatientInfo(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user) fetchData();
+  }, [user]);
+
+  const prenom = patientInfo?.patient?.prenom || user?.firstName || DEMO_PATIENT.prenom;
+  const groupeSanguin = patientInfo?.patient?.groupeSanguin || DEMO_PATIENT.groupeSanguin;
+  const allergies = patientInfo?.patient?.allergies || DEMO_PATIENT.allergies;
+  const numDossier = DEMO_PATIENT.numDossier;
+  const prochainsRdvs = patientInfo?.prochainsRdvs || DEMO_PROCHAINS_RDV;
+  const dernieresConsultations = patientInfo?.dernieresConsultations || DEMO_CONSULTATIONS;
 
   return (
     <Box sx={{ p: 3 }}>
@@ -106,19 +138,21 @@ export default function PatientDashboardPage() {
         <CardContent sx={{ p: { xs: 3, md: 4 } }}>
           <Grid container spacing={2} sx={{ alignItems: 'center' }}>
             <Grid size={{ xs: 12, md: 8 }}>
-              <Typography variant="body2" sx={{ opacity: 0.8, mb: 0.5 }}>
-                Dossier N° {DEMO_PATIENT.numDossier}
-              </Typography>
+              {!loading && (
+                <Typography variant="body2" sx={{ opacity: 0.8, mb: 0.5 }}>
+                  Dossier N° {numDossier}
+                </Typography>
+              )}
               <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-                {t('common.home')}, {DEMO_PATIENT.prenom}
+                {t('common.home')}, {prenom}
               </Typography>
               <Typography variant="body1" sx={{ opacity: 0.9, mb: 2 }}>
                 {t('dashboard.heroSubtitle', 'Bienvenue sur votre espace santé')}
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                <Chip icon={<FavoriteIcon />} label={`Groupe sanguin : ${DEMO_PATIENT.groupeSanguin}`} size="small" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.5)', bgcolor: 'rgba(255,255,255,0.1)' }} variant="outlined" />
-                <Chip icon={<WarningAmberIcon />} label={`Allergies : ${DEMO_PATIENT.allergies}`} size="small" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.5)', bgcolor: 'rgba(255,255,255,0.1)' }} variant="outlined" />
-                <Chip icon={<LocalHospitalIcon />} label={`Médecin traitant : ${DEMO_PATIENT.medecinTraitant}`} size="small" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.5)', bgcolor: 'rgba(255,255,255,0.1)' }} variant="outlined" />
+                <Chip icon={<FavoriteIcon />} label={`Groupe sanguin : ${groupeSanguin}`} size="small" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.5)', bgcolor: 'rgba(255,255,255,0.1)' }} variant="outlined" />
+                <Chip icon={<WarningAmberIcon />} label={`Allergies : ${allergies}`} size="small" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.5)', bgcolor: 'rgba(255,255,255,0.1)' }} variant="outlined" />
+                <Chip icon={<LocalHospitalIcon />} label={`Médecin traitant : Dr. Khaled Mejri`} size="small" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.5)', bgcolor: 'rgba(255,255,255,0.1)' }} variant="outlined" />
               </Box>
             </Grid>
             <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', gap: 1, justifyContent: { md: 'flex-end' } }}>
@@ -158,10 +192,10 @@ export default function PatientDashboardPage() {
       {/* Stats Cards */}
       <Grid container spacing={2.5} sx={{ mb: 4 }}>
         <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard title="Prochains RDV" value={DEMO_PROCHAINS_RDV.length} icon={<CalendarMonthIcon />} color="#006D77" subtitle="Cette semaine" />
+          <StatCard title="Prochains RDV" value={prochainsRdvs.length} icon={<CalendarMonthIcon />} color="#006D77" subtitle="Cette semaine" />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard title="Consultations" value={DEMO_CONSULTATIONS.length} icon={<MedicalServicesIcon />} color="#0288D1" subtitle="Ce mois" />
+          <StatCard title="Consultations" value={dernieresConsultations.length} icon={<MedicalServicesIcon />} color="#0288D1" subtitle="Ce mois" />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard title="Traitements" value={DEMO_TRAITEMENTS.length} icon={<MedicationIcon />} color="#2E7D32" subtitle="En cours" />
@@ -186,35 +220,35 @@ export default function PatientDashboardPage() {
                 </Button>
               </Box>
               <List disablePadding>
-                {DEMO_PROCHAINS_RDV.map((rdv, i) => (
+                {prochainsRdvs.map((rdv: any, i: number) => (
                   <Box key={rdv.id}>
                     <ListItem sx={{ px: 0, alignItems: 'flex-start' }}>
                       <ListItemAvatar sx={{ mt: 0.5 }}>
-                        <Avatar sx={{ bgcolor: rdv.statut === 'confirmé' ? '#006D77' : rdv.statut === 'en_attente' ? '#E29578' : '#83C5BE', width: 44, height: 44 }}>
+                        <Avatar sx={{ bgcolor: rdv.statut === 'confirmé' || rdv.statut === 'CONFIRME' ? '#006D77' : rdv.statut === 'en_attente' || rdv.statut === 'EN_ATTENTE' ? '#E29578' : '#83C5BE', width: 44, height: 44 }}>
                           <CalendarMonthIcon />
                         </Avatar>
                       </ListItemAvatar>
                       <ListItemText
                         primary={
                           <Typography sx={{ fontWeight: 600 }}>
-                            {rdv.medecin}
-                            <Chip label={rdv.specialite} size="small" variant="outlined" sx={{ ml: 1, fontSize: 11 }} />
+                            {rdv.medecin || `Dr. ${rdv.medecin}`}
+                            {rdv.specialite && <Chip label={rdv.specialite} size="small" variant="outlined" sx={{ ml: 1, fontSize: 11 }} />}
                           </Typography>
                         }
                         secondary={
                           <>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3 }}>
                               <AccessTimeIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-                              <Typography variant="body2" component="span">{rdv.date} à {rdv.heure}</Typography>
+                              <Typography variant="body2" component="span">{rdv.date || rdv.dateHeure} {rdv.heure ? `à ${rdv.heure}` : ''}</Typography>
                             </Box>
-                            <Typography variant="body2" color="text.secondary">{rdv.motif}</Typography>
-                            <Typography variant="caption" color="text.secondary">{rdv.lieu}</Typography>
+                            {rdv.motif && <Typography variant="body2" color="text.secondary">{rdv.motif}</Typography>}
+                            {rdv.lieu && <Typography variant="caption" color="text.secondary">{rdv.lieu}</Typography>}
                           </>
                         }
                       />
-                      <Chip label={rdv.statut} size="small" color={STATUT_COLORS[rdv.statut] as any} sx={{ mt: 1, ml: 1 }} />
+                      <Chip label={rdv.statut} size="small" color={STATUT_COLORS[rdv.statut] as any || 'default'} sx={{ mt: 1, ml: 1 }} />
                     </ListItem>
-                    {i < DEMO_PROCHAINS_RDV.length - 1 && <Divider component="li" />}
+                    {i < prochainsRdvs.length - 1 && <Divider component="li" />}
                   </Box>
                 ))}
               </List>
@@ -301,7 +335,7 @@ export default function PatientDashboardPage() {
                 </Button>
               </Box>
               <List disablePadding>
-                {DEMO_CONSULTATIONS.map((c, i) => (
+                {dernieresConsultations.map((c: any, i: number) => (
                   <Box key={c.id}>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemAvatar sx={{ mt: 0.3 }}>
@@ -318,13 +352,13 @@ export default function PatientDashboardPage() {
                         }
                         secondary={
                           <>
-                            <Typography variant="body2">{c.date} — {c.motif}</Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>"{c.diagnostic}"</Typography>
+                            <Typography variant="body2">{c.date || c.dateConsultation} — {c.motif}</Typography>
+                            {c.diagnostic && <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>"{c.diagnostic}"</Typography>}
                           </>
                         }
                       />
                     </ListItem>
-                    {i < DEMO_CONSULTATIONS.length - 1 && <Divider component="li" />}
+                    {i < dernieresConsultations.length - 1 && <Divider component="li" />}
                   </Box>
                 ))}
               </List>

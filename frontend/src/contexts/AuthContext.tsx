@@ -33,6 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = await authApi.me();
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Une erreur est survenue';
+      throw new Error(msg);
     } finally {
       setLoading(false);
     }
