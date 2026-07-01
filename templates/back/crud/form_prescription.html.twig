@@ -1,0 +1,77 @@
+{% extends 'back/layout.html.twig' %}
+
+{% block title %}{{ form_title }} — Back Office{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card table-card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0"><i class="fas fa-{% if prescription %}edit{% else %}plus{% endif %} me-2 text-primary"></i>{{ form_title }}</h5>
+                <a href="{{ path('back_prescription_index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Retour à la liste
+                </a>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" action="{{ form_action }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token(prescription ? 'prescription_edit_' ~ prescription.id : 'prescription_new') }}">
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Consultation <span class="text-danger">*</span></label>
+                            <select name="consultation" class="form-select" required>
+                                <option value="">-- Sélectionner une consultation --</option>
+                                {% for c in consultations %}
+                                    <option value="{{ c.id }}" {% if selected_consultation == c.id %}selected{% endif %}>
+                                        #{{ c.id }} — {{ c.diagnostic|default('N/A')|slice(0, 50) }} ({{ c.date|date('d/m/Y H:i') }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Médecin <span class="text-danger">*</span></label>
+                            <select name="medecin" class="form-select" required>
+                                <option value="">-- Sélectionner un médecin --</option>
+                                {% for m in medecins %}
+                                    <option value="{{ m.id }}" {% if selected_medecin == m.id %}selected{% endif %}>
+                                        {{ m.utilisateur.nomComplet ?? 'Dr #' ~ m.id }} ({{ m.specialite }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Statut <span class="text-danger">*</span></label>
+                            <select name="statut" class="form-select" required>
+                                {% for s in statuts %}
+                                    <option value="{{ s.value }}" {% if selected_statut == s.value %}selected{% endif %}>
+                                        {{ s.value|replace({'_': ' '})|capitalize }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">PDF généré</label>
+                            <div class="form-check mt-2">
+                                <input type="checkbox" name="pdfGenere" class="form-check-input" id="pdfGenere" {% if prescription and prescription.pdfGenere %}checked{% endif %}>
+                                <label class="form-check-label" for="pdfGenere">
+                                    Marquer comme généré
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>{{ submit_label }}
+                        </button>
+                        <a href="{{ path('back_prescription_index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

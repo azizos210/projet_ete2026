@@ -53,7 +53,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     try {
-      await login(email, password);
+      await login(email.trim(), password);
       if (config.redirect === '/back' || config.redirect === '/argon/pages/dashboard.html') {
         window.location.href = config.redirect;
       } else {

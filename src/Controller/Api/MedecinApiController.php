@@ -2,11 +2,11 @@
 
 namespace App\Controller\Api;
 
-use App\Entity\User;
 use App\Entity\Medecin;
 use App\Entity\Consultation;
 use App\Entity\RendezVous;
 use App\Entity\Prescription;
+use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,9 +22,11 @@ class MedecinApiController extends AbstractController
 
     private function getMedecinFromUser(): ?Medecin
     {
-        $user = $this->getUser();
-        if (!$user) return null;
-        $utilisateur = $this->em->getRepository(User::class)->findOneBy(['email' => $user->getEmail()]);
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return null;
+        }
+
         return $this->em->getRepository(Medecin::class)->findOneBy(['utilisateur' => $utilisateur]);
     }
 

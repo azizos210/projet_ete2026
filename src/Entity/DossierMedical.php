@@ -24,6 +24,18 @@ class DossierMedical
     private ?\DateTimeImmutable $dateCreation = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $diagnostic = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $traitement = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $observations = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $dateMiseAJour = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $antecedentsMedicaux = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
@@ -49,12 +61,27 @@ class DossierMedical
     #[ORM\PrePersist]
     public function onPrePersist(): void { $this->dateCreation = new \DateTimeImmutable(); }
 
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void { $this->dateMiseAJour = new \DateTimeImmutable(); }
+
     public function getId(): ?int { return $this->id; }
 
     public function getPatient(): ?Patient { return $this->patient; }
     public function setPatient(?Patient $patient): static { $this->patient = $patient; return $this; }
 
     public function getDateCreation(): ?\DateTimeImmutable { return $this->dateCreation; }
+
+    public function getDiagnostic(): ?string { return $this->diagnostic; }
+    public function setDiagnostic(?string $diagnostic): static { $this->diagnostic = $diagnostic; return $this; }
+
+    public function getTraitement(): ?string { return $this->traitement; }
+    public function setTraitement(?string $traitement): static { $this->traitement = $traitement; return $this; }
+
+    public function getObservations(): ?string { return $this->observations; }
+    public function setObservations(?string $observations): static { $this->observations = $observations; return $this; }
+
+    public function getDateMiseAJour(): ?\DateTimeImmutable { return $this->dateMiseAJour; }
+    public function setDateMiseAJour(?\DateTimeImmutable $dateMiseAJour): static { $this->dateMiseAJour = $dateMiseAJour; return $this; }
 
     public function getAntecedentsMedicaux(): ?string { return $this->antecedentsMedicaux; }
     public function setAntecedentsMedicaux(?string $a): static { $this->antecedentsMedicaux = $a; return $this; }

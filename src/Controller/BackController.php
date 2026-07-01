@@ -3,20 +3,23 @@
 namespace App\Controller;
 
 use App\Entity\Consultation;
+use App\Entity\DossierMedical;
 use App\Entity\Facture;
 use App\Entity\Infirmier;
 use App\Entity\Medecin;
+use App\Entity\Medicament;
 use App\Entity\Patient;
 use App\Entity\Prescription;
 use App\Entity\RendezVous;
+use App\Enum\StatutRendezVousEnum;
 use App\Entity\SecretaireMedicale;
 use App\Entity\User;
 use App\Entity\Utilisateur;
+use App\Service\UserSyncService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/back', name: 'back_')]
@@ -24,7 +27,7 @@ class BackController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $em,
-        private UserPasswordHasherInterface $passwordHasher,
+        private UserSyncService $userSyncService,
     ) {}
 
     // ========================================================================
@@ -98,7 +101,7 @@ class BackController extends AbstractController
                 return $this->redirectToRoute('back_utilisateurs');
             }
 
-            $email = trim($data->get('email', ''));
+            $email = $this->userSyncService->normalizeEmail($data->get('email', ''));
             $password = $data->get('password', '');
             $firstName = trim($data->get('firstName', ''));
             $lastName = trim($data->get('lastName', ''));
@@ -115,7 +118,8 @@ class BackController extends AbstractController
                 ]);
             }
 
-            if ($this->em->getRepository(User::class)->findOneBy(['email' => $email])) {
+            if ($this->em->getRepository(User::class)->findOneBy(['email' => $email])
+                || $this->em->getRepository(Utilisateur::class)->findOneBy(['email' => $email])) {
                 $this->addFlash('error', 'Cet email est déjà utilisé.');
                 return $this->redirectToRoute('back_utilisateurs');
             }
@@ -124,8 +128,10 @@ class BackController extends AbstractController
             $user->setEmail($email);
             $user->setFirstName($firstName);
             $user->setLastName($lastName);
-            $user->setPassword($this->passwordHasher->hashPassword($user, $password));
             $user->setRoles(array_filter($roles));
+
+            $utilisateur = $this->userSyncService->syncUtilisateurFromUser($user);
+            $this->userSyncService->hashAndSetPassword($user, $utilisateur, $password);
 
             $this->em->persist($user);
             $this->em->flush();
@@ -175,7 +181,7 @@ class BackController extends AbstractController
                 return $this->redirectToRoute('back_utilisateurs');
             }
 
-            $email = trim($data->get('email', ''));
+            $email = $this->userSyncService->normalizeEmail($data->get('email', ''));
             $firstName = trim($data->get('firstName', ''));
             $lastName = trim($data->get('lastName', ''));
             $password = $data->get('password', '');
@@ -201,10 +207,14 @@ class BackController extends AbstractController
             $user->setEmail($email);
             $user->setFirstName($firstName);
             $user->setLastName($lastName);
-            if ($password !== '') {
-                $user->setPassword($this->passwordHasher->hashPassword($user, $password));
-            }
             $user->setRoles(array_filter($roles));
+
+            $utilisateur = $this->userSyncService->syncUtilisateurFromUser($user);
+            if ($password !== '') {
+                $this->userSyncService->hashAndSetPassword($user, $utilisateur, $password);
+            } else {
+                $utilisateur->setPassword((string) $user->getPassword());
+            }
 
             $this->em->flush();
             $this->addFlash('success', 'Utilisateur modifié avec succès.');
@@ -1045,7 +1055,7 @@ class BackController extends AbstractController
     // CONSULTATIONS
     // ========================================================================
 
-    #[Route('/consultation/{id}', name: 'consultation_show', methods: ['GET'])]
+    #[Route('/consultation/{id<\d+>}', name: 'consultation_show', methods: ['GET'])]
     public function consultationShow(Consultation $consultation): Response
     {
         $dm = $consultation->getDossierMedical();
@@ -1071,7 +1081,7 @@ class BackController extends AbstractController
                 ['label' => 'Examen clinique',        'value' => $consultation->getExamenClinique() ?? '--'],
                 ['label' => 'Diagnostic',             'value' => $consultation->getDiagnostic() ?? '--'],
                 ['label' => 'Recommandations',        'value' => $consultation->getRecommandations() ?? '--'],
-                ['label' => 'Statut',                 'value' => $consultation->getStatut()],
+                ['label' => 'Statut',                 'value' => $consultation->getStatut()?->value ?? '--'],
                 ['label' => 'Rendez-vous',            'value' => $consultation->getRendezVous() ? '#' . $consultation->getRendezVous()->getId() : '--'],
                 ['label' => 'Validateur',             'value' => $v ? ($vu?->getNomComplet() ?? '#'.$v->getId()) : '--'],
                 ['label' => 'Signes vitaux',          'value' => $consultation->getSignesVitaux()->count(), 'type' => 'count'],
@@ -1085,7 +1095,7 @@ class BackController extends AbstractController
         ]);
     }
 
-    #[Route('/consultation/nouveau', name: 'consultation_new', methods: ['GET', 'POST'])]
+    #[Route('/consultation/new', name: 'consultation_new', methods: ['GET', 'POST'])]
     public function consultationNew(Request $req): Response
     {
         $dossiers = $this->em->getRepository(\App\Entity\DossierMedical::class)->findAll();
@@ -1170,7 +1180,7 @@ class BackController extends AbstractController
         ));
     }
 
-    #[Route('/consultation/{id}/modifier', name: 'consultation_edit', methods: ['GET', 'POST'])]
+    #[Route('/consultation/{id<\d+>}/modifier', name: 'consultation_edit', methods: ['GET', 'POST'])]
     public function consultationEdit(Request $req, Consultation $consultation): Response
     {
         $dossiers = $this->em->getRepository(\App\Entity\DossierMedical::class)->findAll();
@@ -1256,7 +1266,7 @@ class BackController extends AbstractController
         ));
     }
 
-    #[Route('/consultation/{id}/supprimer', name: 'consultation_delete', methods: ['POST'])]
+    #[Route('/consultation/{id<\d+>}/supprimer', name: 'consultation_delete', methods: ['POST'])]
     public function consultationDelete(Request $req, Consultation $consultation): Response
     {
         if (!$this->isCsrfTokenValid('consultation_delete_' . $consultation->getId(), $req->request->get('_token'))) {
@@ -1366,8 +1376,8 @@ class BackController extends AbstractController
         ];
     }
 
-    #[Route('/rendez-vous', name: 'rendez_vous')]
-    public function rendezVous(): Response
+    #[Route('/rendez-vous', name: 'rendez_vous_index')]
+    public function rendezVousIndex(): Response
     {
         $rdvs = $this->em->getRepository(RendezVous::class)->findBy([], ['dateHeure' => 'DESC']);
         return $this->render('back/crud/liste.html.twig', [
@@ -1380,46 +1390,719 @@ class BackController extends AbstractController
         ]);
     }
 
-    #[Route('/dossiers-medicaux', name: 'dossiers_medicaux')]
-    public function dossiersMedicaux(): Response
+    #[Route('/rendez-vous/new', name: 'rendez_vous_new', methods: ['GET', 'POST'])]
+    public function rendezVousNew(Request $req): Response
     {
-        $dossiers = $this->em->getRepository(\App\Entity\DossierMedical::class)->findAll();
-        return $this->render('back/crud/liste.html.twig', [
-            'entite'      => 'Dossiers médicaux',
+        $patients = $this->em->getRepository(Patient::class)->findAll();
+        $medecins = $this->em->getRepository(Medecin::class)->findAll();
+
+        if ($req->isMethod('POST')) {
+            $data = $req->request;
+            if (!$this->isCsrfTokenValid('rendez_vous_new', $data->get('_token'))) {
+                $this->addFlash('error', 'Token CSRF invalide.');
+                return $this->redirectToRoute('back_rendez_vous_index');
+            }
+
+            $patientId = $data->get('patient');
+            $medecinId = $data->get('medecin');
+            $dateStr = $data->get('dateHeure', '');
+            $motif = trim($data->get('motif', '')) ?: null;
+            $statut = trim($data->get('statut', '')) ?: null;
+
+            if (!$patientId || !$medecinId || $dateStr === '') {
+                $this->addFlash('error', 'Patient, médecin et date/heure sont obligatoires.');
+                return $this->render('back/crud/form_rendez_vous.html.twig', [
+                    'rendez_vous' => null,
+                    'patients' => $patients,
+                    'medecins' => $medecins,
+                    'form_action' => $this->generateUrl('back_rendez_vous_new'),
+                    'form_title' => 'Nouveau rendez-vous',
+                    'submit_label' => 'Créer',
+                ]);
+            }
+
+            $patient = $this->em->getRepository(Patient::class)->find($patientId);
+            $medecin = $this->em->getRepository(Medecin::class)->find($medecinId);
+            if (!$patient || !$medecin) {
+                $this->addFlash('error', 'Patient ou médecin introuvable.');
+                return $this->redirectToRoute('back_rendez_vous_index');
+            }
+
+            $rdv = new RendezVous();
+            $rdv->setPatient($patient);
+            $rdv->setMedecin($medecin);
+            $rdv->setDateHeure(new \DateTime($dateStr));
+            if ($motif) $rdv->setMotif($motif);
+            if ($statut) {
+                $enum = StatutRendezVousEnum::tryFrom($statut);
+                if ($enum) $rdv->setStatut($enum);
+            }
+
+            $this->em->persist($rdv);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Rendez-vous créé avec succès.');
+            return $this->redirectToRoute('back_rendez_vous_index');
+        }
+
+        return $this->render('back/crud/form_rendez_vous.html.twig', [
+            'rendez_vous' => null,
+            'patients' => $patients,
+            'medecins' => $medecins,
+            'form_action' => $this->generateUrl('back_rendez_vous_new'),
+            'form_title' => 'Nouveau rendez-vous',
+            'submit_label' => 'Créer',
+        ]);
+    }
+
+    #[Route('/rendez-vous/{id<\\d+>}', name: 'rendez_vous_show', methods: ['GET'])]
+    public function rendezVousShow(RendezVous $rendezVous): Response
+    {
+        return $this->render('back/crud/show.html.twig', [
+            'entite' => 'Rendez-vous',
+            'entite_slug' => 'rendez_vous',
+            'entity' => $rendezVous,
+            'fields' => [
+                ['label' => 'ID', 'value' => $rendezVous->getId()],
+                ['label' => 'Patient', 'value' => $rendezVous->getPatient() ? ('#'.$rendezVous->getPatient()->getId()) : '--'],
+                ['label' => 'Médecin', 'value' => $rendezVous->getMedecin() ? ('#'.$rendezVous->getMedecin()->getId()) : '--'],
+                ['label' => 'Date/Heure', 'value' => $rendezVous->getDateHeure(), 'type' => 'datetime'],
+                ['label' => 'Motif', 'value' => $rendezVous->getMotif() ?? '--'],
+                ['label' => 'Statut', 'value' => $rendezVous->getStatut()?->value ?? '--'],
+            ],
+            'delete_route' => 'back_rendez_vous_delete',
+            'edit_route' => 'back_rendez_vous_edit',
+            'list_route' => 'back_rendez_vous_index',
+        ]);
+    }
+
+    #[Route('/rendez-vous/{id<\\d+>}/edit', name: 'rendez_vous_edit', methods: ['GET', 'POST'])]
+    public function rendezVousEdit(Request $req, RendezVous $rendezVous): Response
+    {
+        $patients = $this->em->getRepository(Patient::class)->findAll();
+        $medecins = $this->em->getRepository(Medecin::class)->findAll();
+
+        if ($req->isMethod('POST')) {
+            $data = $req->request;
+            if (!$this->isCsrfTokenValid('rendez_vous_edit_' . $rendezVous->getId(), $data->get('_token'))) {
+                $this->addFlash('error', 'Token CSRF invalide.');
+                return $this->redirectToRoute('back_rendez_vous_index');
+            }
+
+            $patientId = $data->get('patient');
+            $medecinId = $data->get('medecin');
+            $dateStr = $data->get('dateHeure', '');
+            $motif = trim($data->get('motif', '')) ?: null;
+            $statut = trim($data->get('statut', '')) ?: null;
+
+            if (!$patientId || !$medecinId || $dateStr === '') {
+                $this->addFlash('error', 'Patient, médecin et date/heure sont obligatoires.');
+                return $this->render('back/crud/form_rendez_vous.html.twig', [
+                    'rendez_vous' => $rendezVous,
+                    'patients' => $patients,
+                    'medecins' => $medecins,
+                    'form_action' => $this->generateUrl('back_rendez_vous_edit', ['id' => $rendezVous->getId()]),
+                    'form_title' => 'Modifier rendez-vous',
+                    'submit_label' => 'Enregistrer',
+                ]);
+            }
+
+            $patient = $this->em->getRepository(Patient::class)->find($patientId);
+            $medecin = $this->em->getRepository(Medecin::class)->find($medecinId);
+            if (!$patient || !$medecin) {
+                $this->addFlash('error', 'Patient ou médecin introuvable.');
+                return $this->redirectToRoute('back_rendez_vous_index');
+            }
+
+            $rendezVous->setPatient($patient);
+            $rendezVous->setMedecin($medecin);
+            $rendezVous->setDateHeure(new \DateTime($dateStr));
+            $rendezVous->setMotif($motif);
+            if ($statut) {
+                $enum = StatutRendezVousEnum::tryFrom($statut);
+                if ($enum) $rendezVous->setStatut($enum);
+            }
+
+            $this->em->flush();
+            $this->addFlash('success', 'Rendez-vous mis à jour.');
+            return $this->redirectToRoute('back_rendez_vous_index');
+        }
+
+        return $this->render('back/crud/form_rendez_vous.html.twig', [
+            'rendez_vous' => $rendezVous,
+            'patients' => $patients,
+            'medecins' => $medecins,
+            'form_action' => $this->generateUrl('back_rendez_vous_edit', ['id' => $rendezVous->getId()]),
+            'form_title' => 'Modifier rendez-vous',
+            'submit_label' => 'Enregistrer',
+        ]);
+    }
+
+    #[Route('/rendez-vous/{id<\\d+>}/delete', name: 'rendez_vous_delete', methods: ['POST'])]
+    public function rendezVousDelete(Request $req, RendezVous $rendezVous): Response
+    {
+        if (!$this->isCsrfTokenValid('rendez_vous_delete_' . $rendezVous->getId(), $req->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+            return $this->redirectToRoute('back_rendez_vous_index');
+        }
+
+        $this->em->remove($rendezVous);
+        $this->em->flush();
+        $this->addFlash('success', 'Rendez-vous supprimé avec succès.');
+        return $this->redirectToRoute('back_rendez_vous_index');
+    }
+
+    #[Route('/dossiers-medicaux', name: 'dossier_medical_index')]
+    public function dossierMedicalIndex(Request $req): Response
+    {
+        $q = $this->buildListQuery(DossierMedical::class, $req, [
+            'defaultSort' => 'e.dateCreation',
+            'searchFields' => ['patient.utilisateur.prenom', 'patient.utilisateur.nom', 'antecedentsMedicaux', 'antecedentsFamiliaux', 'diagnostic'],
+            'filters' => [],
+        ]);
+
+        return $this->render('back/crud/liste.html.twig', array_merge($q, [
+            'entite'       => 'Dossiers médicaux',
+            'entite_slug'  => 'dossier_medical',
+            'colonnes'     => ['ID', 'Patient', 'Date création', 'Antécédents médicaux'],
+            'lignes'       => $q['results'],
+            'champs'       => ['id', 'patient', 'dateCreation', 'antecedentsMedicaux'],
+            'route_prefix' => 'back_dossier_medical',
+            'show_route'   => 'back_dossier_medical_show',
+            'new_route'    => 'back_dossier_medical_new',
+            'edit_route'   => 'back_dossier_medical_edit',
+            'delete_route' => 'back_dossier_medical_delete',
+            'sortable_fields' => [0 => 'e.id', 2 => 'dateCreation'],
+            'total' => count($q['results']),
+        ]));
+    }
+
+    #[Route('/dossier-medical/nouveau', name: 'dossier_medical_new', methods: ['GET', 'POST'])]
+    public function dossierMedicalNew(Request $req): Response
+    {
+        $patients = $this->em->getRepository(Patient::class)
+            ->createQueryBuilder('p')
+            ->leftJoin('p.dossierMedical', 'd')
+            ->where('d.id IS NULL')
+            ->getQuery()
+            ->getResult();
+
+        if ($req->isMethod('POST')) {
+            $data = $req->request;
+            if (!$this->isCsrfTokenValid('dossier_medical_new', $data->get('_token'))) {
+                $this->addFlash('error', 'Token CSRF invalide.');
+                return $this->redirectToRoute('back_dossier_medical_index');
+            }
+
+            $patientId = $data->get('patient');
+            if (!$patientId) {
+                $this->addFlash('error', 'Le patient est obligatoire.');
+                return $this->render('back/crud/form_dossier_medical.html.twig', [
+                    'dossierMedical' => null,
+                    'patients' => $patients,
+                    'selected_patient' => $patientId,
+                    'form_action' => $this->generateUrl('back_dossier_medical_new'),
+                    'form_title' => 'Nouveau dossier médical',
+                    'submit_label' => 'Créer',
+                ]);
+            }
+
+            $patient = $this->em->getRepository(Patient::class)->find($patientId);
+            if (!$patient) {
+                $this->addFlash('error', 'Patient introuvable.');
+                return $this->redirectToRoute('back_dossier_medical_index');
+            }
+
+            if ($patient->getDossierMedical()) {
+                $this->addFlash('error', 'Ce patient possède déjà un dossier médical.');
+                return $this->redirectToRoute('back_dossier_medical_index');
+            }
+
+            $dossier = new DossierMedical();
+            $dossier->setPatient($patient);
+            $patient->setDossierMedical($dossier);
+            $dossier->setDiagnostic(trim($data->get('diagnostic', '')) ?: null);
+            $dossier->setTraitement(trim($data->get('traitement', '')) ?: null);
+            $dossier->setObservations(trim($data->get('observations', '')) ?: null);
+            $dossier->setAntecedentsMedicaux(trim($data->get('antecedentsMedicaux', '')) ?: null);
+            $dossier->setAntecedentsFamiliaux(trim($data->get('antecedentsFamiliaux', '')) ?: null);
+
+            $this->em->persist($dossier);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Dossier médical créé avec succès.');
+            return $this->redirectToRoute('back_dossier_medical_index');
+        }
+
+        return $this->render('back/crud/form_dossier_medical.html.twig', [
+            'dossierMedical' => null,
+            'patients' => $patients,
+            'selected_patient' => null,
+            'form_action' => $this->generateUrl('back_dossier_medical_new'),
+            'form_title' => 'Nouveau dossier médical',
+            'submit_label' => 'Créer',
+        ]);
+    }
+
+    #[Route('/dossier-medical/{id<\d+>}', name: 'dossier_medical_show', methods: ['GET'])]
+    public function dossierMedicalShow(DossierMedical $dossierMedical): Response
+    {
+        $patient = $dossierMedical->getPatient();
+        $utilisateur = $patient?->getUtilisateur();
+
+        return $this->render('back/crud/show.html.twig', [
+            'entite'      => 'Dossier médical',
             'entite_slug' => 'dossier_medical',
-            'colonnes'    => ['ID', 'Patient', 'Date création', 'Antécédents médicaux'],
-            'lignes'      => $dossiers,
-            'champs'      => ['id', 'patient', 'dateCreation', 'antecedentsMedicaux'],
-            'route_prefix' => 'back_dossiers_medicaux',
+            'entity'      => $dossierMedical,
+            'fields'      => [
+                ['label' => 'ID', 'value' => $dossierMedical->getId()],
+                ['label' => 'Patient', 'value' => $patient ? ($utilisateur?->getNomComplet() ?? '#'.$patient->getId()) : '--'],
+                ['label' => 'Date création', 'value' => $dossierMedical->getDateCreation(), 'type' => 'datetime'],
+                ['label' => 'Dernière mise à jour', 'value' => $dossierMedical->getDateMiseAJour(), 'type' => 'datetime'],
+                ['label' => 'Antécédents médicaux', 'value' => $dossierMedical->getAntecedentsMedicaux() ?? '--'],
+                ['label' => 'Antécédents familiaux', 'value' => $dossierMedical->getAntecedentsFamiliaux() ?? '--'],
+                ['label' => 'Diagnostic', 'value' => $dossierMedical->getDiagnostic() ?? '--'],
+                ['label' => 'Traitement', 'value' => $dossierMedical->getTraitement() ?? '--'],
+                ['label' => 'Observations', 'value' => $dossierMedical->getObservations() ?? '--'],
+                ['label' => 'Consultations', 'value' => $dossierMedical->getConsultations()->count(), 'type' => 'count'],
+                ['label' => 'Documents', 'value' => $dossierMedical->getDocuments()->count(), 'type' => 'count'],
+                ['label' => 'Avis spécialisés', 'value' => $dossierMedical->getAvisSpecialises()->count(), 'type' => 'count'],
+            ],
+            'delete_route' => 'back_dossier_medical_delete',
+            'edit_route'   => 'back_dossier_medical_edit',
+            'list_route'   => 'back_dossier_medical_index',
         ]);
     }
 
-    #[Route('/prescriptions', name: 'prescriptions')]
-    public function prescriptions(): Response
+    #[Route('/dossier-medical/{id<\d+>}/modifier', name: 'dossier_medical_edit', methods: ['GET', 'POST'])]
+    public function dossierMedicalEdit(Request $req, DossierMedical $dossierMedical): Response
     {
-        $prescriptions = $this->em->getRepository(Prescription::class)->findAll();
-        return $this->render('back/crud/liste.html.twig', [
-            'entite'      => 'Prescriptions',
+        $patients = $this->em->getRepository(Patient::class)->findAll();
+
+        if ($req->isMethod('POST')) {
+            $data = $req->request;
+            if (!$this->isCsrfTokenValid('dossier_medical_edit_' . $dossierMedical->getId(), $data->get('_token'))) {
+                $this->addFlash('error', 'Token CSRF invalide.');
+                return $this->redirectToRoute('back_dossier_medical_index');
+            }
+
+            $patientId = $data->get('patient');
+            if (!$patientId) {
+                $this->addFlash('error', 'Le patient est obligatoire.');
+                return $this->render('back/crud/form_dossier_medical.html.twig', [
+                    'dossierMedical' => $dossierMedical,
+                    'patients' => $patients,
+                    'selected_patient' => $patientId,
+                    'form_action' => $this->generateUrl('back_dossier_medical_edit', ['id' => $dossierMedical->getId()]),
+                    'form_title' => 'Modifier le dossier médical',
+                    'submit_label' => 'Enregistrer',
+                ]);
+            }
+
+            $patient = $this->em->getRepository(Patient::class)->find($patientId);
+            if (!$patient) {
+                $this->addFlash('error', 'Patient introuvable.');
+                return $this->redirectToRoute('back_dossier_medical_index');
+            }
+
+            if ($patient->getDossierMedical() && $patient->getDossierMedical()->getId() !== $dossierMedical->getId()) {
+                $this->addFlash('error', 'Ce patient possède déjà un autre dossier médical.');
+                return $this->redirectToRoute('back_dossier_medical_index');
+            }
+
+            $currentPatient = $dossierMedical->getPatient();
+            if ($currentPatient && $currentPatient->getId() !== $patient->getId()) {
+                $currentPatient->setDossierMedical(null);
+                $patient->setDossierMedical($dossierMedical);
+                $dossierMedical->setPatient($patient);
+            }
+
+            $dossierMedical->setDiagnostic(trim($data->get('diagnostic', '')) ?: null);
+            $dossierMedical->setTraitement(trim($data->get('traitement', '')) ?: null);
+            $dossierMedical->setObservations(trim($data->get('observations', '')) ?: null);
+            $dossierMedical->setAntecedentsMedicaux(trim($data->get('antecedentsMedicaux', '')) ?: null);
+            $dossierMedical->setAntecedentsFamiliaux(trim($data->get('antecedentsFamiliaux', '')) ?: null);
+
+            $this->em->flush();
+            $this->addFlash('success', 'Dossier médical modifié avec succès.');
+            return $this->redirectToRoute('back_dossier_medical_index');
+        }
+
+        return $this->render('back/crud/form_dossier_medical.html.twig', [
+            'dossierMedical' => $dossierMedical,
+            'patients' => $patients,
+            'selected_patient' => $dossierMedical->getPatient()?->getId(),
+            'form_action' => $this->generateUrl('back_dossier_medical_edit', ['id' => $dossierMedical->getId()]),
+            'form_title' => 'Modifier le dossier médical',
+            'submit_label' => 'Enregistrer',
+        ]);
+    }
+
+    #[Route('/dossier-medical/{id<\d+>}/supprimer', name: 'dossier_medical_delete', methods: ['POST'])]
+    public function dossierMedicalDelete(Request $req, DossierMedical $dossierMedical): Response
+    {
+        if (!$this->isCsrfTokenValid('dossier_medical_delete_' . $dossierMedical->getId(), $req->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+            return $this->redirectToRoute('back_dossier_medical_index');
+        }
+
+        $patient = $dossierMedical->getPatient();
+        if ($patient) {
+            $patient->setDossierMedical(null);
+        }
+        $this->em->remove($dossierMedical);
+        $this->em->flush();
+
+        $this->addFlash('success', 'Dossier médical supprimé avec succès.');
+        return $this->redirectToRoute('back_dossier_medical_index');
+    }
+
+    #[Route('/prescriptions', name: 'prescription_index')]
+    public function prescriptionIndex(Request $req): Response
+    {
+        $statutOptions = array_map(fn($s) => ['value' => $s->value, 'label' => $s->value], \App\Enum\StatutPrescriptionEnum::cases());
+        $filterConfig = [
+            ['name' => 'statut', 'label' => 'Statut', 'field' => 'statut', 'options' => $statutOptions],
+        ];
+        $q = $this->buildListQuery(Prescription::class, $req, [
+            'defaultSort' => 'e.dateEmission',
+            'searchFields' => ['consultation.diagnostic', 'medecin.utilisateur.nom', 'medecin.utilisateur.prenom'],
+            'filters' => $filterConfig,
+        ]);
+
+        return $this->render('back/crud/liste.html.twig', array_merge($q, [
+            'entite'       => 'Prescriptions',
+            'entite_slug'  => 'prescription',
+            'colonnes'     => ['ID', 'Consultation', 'Médecin', 'Date émission', 'Statut'],
+            'lignes'       => $q['results'],
+            'champs'       => ['id', 'consultation', 'medecin', 'dateEmission', 'statut'],
+            'route_prefix' => 'back_prescription',
+            'show_route'   => 'back_prescription_show',
+            'new_route'    => 'back_prescription_new',
+            'edit_route'   => 'back_prescription_edit',
+            'delete_route' => 'back_prescription_delete',
+            'sortable_fields' => [0 => 'e.id', 3 => 'dateEmission'],
+            'total' => count($q['results']),
+            'filters' => array_map(fn($f) => $f + ['selected' => $q['filter_values'][$f['name']] ?? ''], $filterConfig),
+        ]));
+    }
+
+    #[Route('/prescription/nouveau', name: 'prescription_new', methods: ['GET', 'POST'])]
+    public function prescriptionNew(Request $req): Response
+    {
+        $consultations = $this->em->getRepository(Consultation::class)->findAll();
+        $medecins = $this->em->getRepository(Medecin::class)->findAll();
+        $statuts = \App\Enum\StatutPrescriptionEnum::cases();
+
+        if ($req->isMethod('POST')) {
+            $data = $req->request;
+            if (!$this->isCsrfTokenValid('prescription_new', $data->get('_token'))) {
+                $this->addFlash('error', 'Token CSRF invalide.');
+                return $this->redirectToRoute('back_prescription_index');
+            }
+
+            $consultationId = $data->get('consultation');
+            $medecinId = $data->get('medecin');
+            $statut = $data->get('statut');
+
+            if (!$consultationId || !$medecinId) {
+                $this->addFlash('error', 'La consultation et le médecin sont obligatoires.');
+                return $this->render('back/crud/form_prescription.html.twig', [
+                    'prescription' => null,
+                    'consultations' => $consultations,
+                    'medecins' => $medecins,
+                    'statuts' => $statuts,
+                    'selected_consultation' => $consultationId,
+                    'selected_medecin' => $medecinId,
+                    'selected_statut' => $statut,
+                    'form_action' => $this->generateUrl('back_prescription_new'),
+                    'form_title' => 'Nouvelle prescription',
+                    'submit_label' => 'Créer',
+                ]);
+            }
+
+            $consultation = $this->em->getRepository(Consultation::class)->find($consultationId);
+            $medecin = $this->em->getRepository(Medecin::class)->find($medecinId);
+
+            if (!$consultation || !$medecin) {
+                $this->addFlash('error', 'Consultation ou médecin introuvable.');
+                return $this->redirectToRoute('back_prescription_index');
+            }
+
+            $prescription = new Prescription();
+            $prescription->setConsultation($consultation);
+            $prescription->setMedecin($medecin);
+            $prescription->setStatut(\App\Enum\StatutPrescriptionEnum::tryFrom($statut) ?? \App\Enum\StatutPrescriptionEnum::ACTIVE);
+            $prescription->setPdfGenere($data->get('pdfGenere') ? true : false);
+
+            $this->em->persist($prescription);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Prescription créée avec succès.');
+            return $this->redirectToRoute('back_prescription_index');
+        }
+
+        return $this->render('back/crud/form_prescription.html.twig', [
+            'prescription' => null,
+            'consultations' => $consultations,
+            'medecins' => $medecins,
+            'statuts' => $statuts,
+            'selected_consultation' => null,
+            'selected_medecin' => null,
+            'selected_statut' => 'active',
+            'form_action' => $this->generateUrl('back_prescription_new'),
+            'form_title' => 'Nouvelle prescription',
+            'submit_label' => 'Créer',
+        ]);
+    }
+
+    #[Route('/prescription/{id<\d+>}', name: 'prescription_show', methods: ['GET'])]
+    public function prescriptionShow(Prescription $prescription): Response
+    {
+        $consultation = $prescription->getConsultation();
+        $medecin = $prescription->getMedecin();
+        $medecinUtilisateur = $medecin?->getUtilisateur();
+        $patient = $consultation?->getDossierMedical()?->getPatient();
+        $patientUtilisateur = $patient?->getUtilisateur();
+
+        return $this->render('back/crud/show.html.twig', [
+            'entite'      => 'Prescription',
             'entite_slug' => 'prescription',
-            'colonnes'    => ['ID', 'Consultation', 'Date', 'Instructions', 'Statut'],
-            'lignes'      => $prescriptions,
-            'champs'      => ['id', 'consultation', 'dateEmission', 'instructions', 'statut'],
-            'route_prefix' => 'back_prescriptions',
+            'entity'      => $prescription,
+            'fields'      => [
+                ['label' => 'ID', 'value' => $prescription->getId()],
+                ['label' => 'Consultation', 'value' => $consultation ? ('#' . $consultation->getId() . ' — ' . ($consultation->getDiagnostic() ?? 'N/A')) : '--'],
+                ['label' => 'Médecin', 'value' => $medecinUtilisateur?->getNomComplet() ?? '--'],
+                ['label' => 'Patient', 'value' => $patientUtilisateur?->getNomComplet() ?? '--'],
+                ['label' => 'Date émission', 'value' => $prescription->getDateEmission(), 'type' => 'datetime'],
+                ['label' => 'Statut', 'value' => $prescription->getStatut()->value],
+                ['label' => 'PDF généré', 'value' => $prescription->isPdfGenere(), 'type' => 'boolean'],
+                ['label' => 'Lignes', 'value' => $prescription->getLignes()->count(), 'type' => 'count'],
+            ],
+            'delete_route' => 'back_prescription_delete',
+            'edit_route'   => 'back_prescription_edit',
+            'list_route'   => 'back_prescription_index',
         ]);
     }
 
-    #[Route('/medicaments', name: 'medicaments')]
-    public function medicaments(): Response
+    #[Route('/prescription/{id<\d+>}/modifier', name: 'prescription_edit', methods: ['GET', 'POST'])]
+    public function prescriptionEdit(Request $req, Prescription $prescription): Response
     {
-        $medicaments = $this->em->getRepository(\App\Entity\Medicament::class)->findAll();
-        return $this->render('back/crud/liste.html.twig', [
-            'entite'      => 'Médicaments',
-            'entite_slug' => 'medicament',
-            'colonnes'    => ['ID', 'Nom', 'Dosage', 'Forme', 'Fabricant'],
-            'lignes'      => $medicaments,
-            'champs'      => ['id', 'nom', 'dosage', 'forme', 'fabricant'],
-            'route_prefix' => 'back_medicaments',
+        $consultations = $this->em->getRepository(Consultation::class)->findAll();
+        $medecins = $this->em->getRepository(Medecin::class)->findAll();
+        $statuts = \App\Enum\StatutPrescriptionEnum::cases();
+
+        if ($req->isMethod('POST')) {
+            $data = $req->request;
+            if (!$this->isCsrfTokenValid('prescription_edit_' . $prescription->getId(), $data->get('_token'))) {
+                $this->addFlash('error', 'Token CSRF invalide.');
+                return $this->redirectToRoute('back_prescription_index');
+            }
+
+            $consultationId = $data->get('consultation');
+            $medecinId = $data->get('medecin');
+            $statut = $data->get('statut');
+
+            if (!$consultationId || !$medecinId) {
+                $this->addFlash('error', 'La consultation et le médecin sont obligatoires.');
+                return $this->render('back/crud/form_prescription.html.twig', [
+                    'prescription' => $prescription,
+                    'consultations' => $consultations,
+                    'medecins' => $medecins,
+                    'statuts' => $statuts,
+                    'selected_consultation' => $consultationId,
+                    'selected_medecin' => $medecinId,
+                    'selected_statut' => $statut,
+                    'form_action' => $this->generateUrl('back_prescription_edit', ['id' => $prescription->getId()]),
+                    'form_title' => 'Modifier la prescription',
+                    'submit_label' => 'Enregistrer',
+                ]);
+            }
+
+            $consultation = $this->em->getRepository(Consultation::class)->find($consultationId);
+            $medecin = $this->em->getRepository(Medecin::class)->find($medecinId);
+
+            if (!$consultation || !$medecin) {
+                $this->addFlash('error', 'Consultation ou médecin introuvable.');
+                return $this->redirectToRoute('back_prescription_index');
+            }
+
+            $prescription->setConsultation($consultation);
+            $prescription->setMedecin($medecin);
+            $prescription->setStatut(\App\Enum\StatutPrescriptionEnum::tryFrom($statut) ?? \App\Enum\StatutPrescriptionEnum::ACTIVE);
+            $prescription->setPdfGenere($data->get('pdfGenere') ? true : false);
+
+            $this->em->flush();
+            $this->addFlash('success', 'Prescription modifiée avec succès.');
+            return $this->redirectToRoute('back_prescription_index');
+        }
+
+        return $this->render('back/crud/form_prescription.html.twig', [
+            'prescription' => $prescription,
+            'consultations' => $consultations,
+            'medecins' => $medecins,
+            'statuts' => $statuts,
+            'selected_consultation' => $prescription->getConsultation()?->getId(),
+            'selected_medecin' => $prescription->getMedecin()?->getId(),
+            'selected_statut' => $prescription->getStatut()->value,
+            'form_action' => $this->generateUrl('back_prescription_edit', ['id' => $prescription->getId()]),
+            'form_title' => 'Modifier la prescription',
+            'submit_label' => 'Enregistrer',
         ]);
+    }
+
+    #[Route('/prescription/{id<\d+>}/supprimer', name: 'prescription_delete', methods: ['POST'])]
+    public function prescriptionDelete(Request $req, Prescription $prescription): Response
+    {
+        if (!$this->isCsrfTokenValid('prescription_delete_' . $prescription->getId(), $req->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+            return $this->redirectToRoute('back_prescription_index');
+        }
+
+        $this->em->remove($prescription);
+        $this->em->flush();
+        $this->addFlash('success', 'Prescription supprimée avec succès.');
+        return $this->redirectToRoute('back_prescription_index');
+    }
+
+    #[Route('/medicaments', name: 'medicament_index')]
+    public function medicamentIndex(Request $req): Response
+    {
+        $q = $this->buildListQuery(Medicament::class, $req, [
+            'defaultSort' => 'e.nom',
+            'searchFields' => ['nom', 'formePharmaceutique', 'dosageStandard'],
+        ]);
+
+        return $this->render('back/crud/liste.html.twig', array_merge($q, [
+            'entite'       => 'Médicaments',
+            'entite_slug'  => 'medicament',
+            'colonnes'     => ['ID', 'Nom', 'Forme pharmaceutique', 'Dosage standard'],
+            'lignes'       => $q['results'],
+            'champs'       => ['id', 'nom', 'formePharmaceutique', 'dosageStandard'],
+            'route_prefix' => 'back_medicament',
+            'show_route'   => 'back_medicament_show',
+            'new_route'    => 'back_medicament_new',
+            'edit_route'   => 'back_medicament_edit',
+            'delete_route' => 'back_medicament_delete',
+            'sortable_fields' => [0 => 'e.id', 1 => 'e.nom'],
+            'total' => count($q['results']),
+        ]));
+    }
+
+    #[Route('/medicament/nouveau', name: 'medicament_new', methods: ['GET', 'POST'])]
+    public function medicamentNew(Request $req): Response
+    {
+        if ($req->isMethod('POST')) {
+            $data = $req->request;
+            if (!$this->isCsrfTokenValid('medicament_new', $data->get('_token'))) {
+                $this->addFlash('error', 'Token CSRF invalide.');
+                return $this->redirectToRoute('back_medicament_index');
+            }
+
+            $nom = $data->get('nom');
+            if (!$nom) {
+                $this->addFlash('error', 'Le nom du médicament est obligatoire.');
+                return $this->render('back/crud/form_medicament.html.twig', [
+                    'medicament' => null,
+                    'form_action' => $this->generateUrl('back_medicament_new'),
+                    'form_title' => 'Nouveau médicament',
+                    'submit_label' => 'Créer',
+                ]);
+            }
+
+            $medicament = new Medicament();
+            $medicament->setNom($nom);
+            $medicament->setFormePharmaceutique($data->get('formePharmaceutique'));
+            $medicament->setDosageStandard($data->get('dosageStandard'));
+            $medicament->setContreIndications($data->get('contreIndications'));
+
+            $this->em->persist($medicament);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Médicament créé avec succès.');
+            return $this->redirectToRoute('back_medicament_index');
+        }
+
+        return $this->render('back/crud/form_medicament.html.twig', [
+            'medicament' => null,
+            'form_action' => $this->generateUrl('back_medicament_new'),
+            'form_title' => 'Nouveau médicament',
+            'submit_label' => 'Créer',
+        ]);
+    }
+
+    #[Route('/medicament/{id<\d+>}', name: 'medicament_show', methods: ['GET'])]
+    public function medicamentShow(Medicament $medicament): Response
+    {
+        return $this->render('back/crud/show.html.twig', [
+            'entite'      => 'Médicament',
+            'entite_slug' => 'medicament',
+            'entity'      => $medicament,
+            'fields'      => [
+                ['label' => 'ID', 'value' => $medicament->getId()],
+                ['label' => 'Nom', 'value' => $medicament->getNom()],
+                ['label' => 'Forme pharmaceutique', 'value' => $medicament->getFormePharmaceutique()],
+                ['label' => 'Dosage standard', 'value' => $medicament->getDosageStandard()],
+                ['label' => 'Contre-indications', 'value' => $medicament->getContreIndications()],
+                ['label' => 'Lignes prescription', 'value' => $medicament->getLignesPrescription()->count(), 'type' => 'count'],
+            ],
+            'delete_route' => 'back_medicament_delete',
+            'edit_route'   => 'back_medicament_edit',
+            'list_route'   => 'back_medicament_index',
+        ]);
+    }
+
+    #[Route('/medicament/{id<\d+>}/modifier', name: 'medicament_edit', methods: ['GET', 'POST'])]
+    public function medicamentEdit(Request $req, Medicament $medicament): Response
+    {
+        if ($req->isMethod('POST')) {
+            $data = $req->request;
+            if (!$this->isCsrfTokenValid('medicament_edit_' . $medicament->getId(), $data->get('_token'))) {
+                $this->addFlash('error', 'Token CSRF invalide.');
+                return $this->redirectToRoute('back_medicament_index');
+            }
+
+            $nom = $data->get('nom');
+            if (!$nom) {
+                $this->addFlash('error', 'Le nom du médicament est obligatoire.');
+                return $this->render('back/crud/form_medicament.html.twig', [
+                    'medicament' => $medicament,
+                    'form_action' => $this->generateUrl('back_medicament_edit', ['id' => $medicament->getId()]),
+                    'form_title' => 'Modifier le médicament',
+                    'submit_label' => 'Enregistrer',
+                ]);
+            }
+
+            $medicament->setNom($nom);
+            $medicament->setFormePharmaceutique($data->get('formePharmaceutique'));
+            $medicament->setDosageStandard($data->get('dosageStandard'));
+            $medicament->setContreIndications($data->get('contreIndications'));
+
+            $this->em->flush();
+            $this->addFlash('success', 'Médicament modifié avec succès.');
+            return $this->redirectToRoute('back_medicament_index');
+        }
+
+        return $this->render('back/crud/form_medicament.html.twig', [
+            'medicament' => $medicament,
+            'form_action' => $this->generateUrl('back_medicament_edit', ['id' => $medicament->getId()]),
+            'form_title' => 'Modifier le médicament',
+            'submit_label' => 'Enregistrer',
+        ]);
+    }
+
+    #[Route('/medicament/{id<\d+>}/supprimer', name: 'medicament_delete', methods: ['POST'])]
+    public function medicamentDelete(Request $req, Medicament $medicament): Response
+    {
+        if (!$this->isCsrfTokenValid('medicament_delete_' . $medicament->getId(), $req->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+            return $this->redirectToRoute('back_medicament_index');
+        }
+
+        $this->em->remove($medicament);
+        $this->em->flush();
+        $this->addFlash('success', 'Médicament supprimé avec succès.');
+        return $this->redirectToRoute('back_medicament_index');
     }
 
     #[Route('/paiements', name: 'paiements')]
@@ -1432,7 +2115,10 @@ class BackController extends AbstractController
             'colonnes'    => ['ID', 'Facture', 'Montant', 'Date', 'Méthode'],
             'lignes'      => $paiements,
             'champs'      => ['id', 'facture', 'montant', 'dateTransaction', 'methode'],
-            'route_prefix' => 'back_paiements',
+            'show_route'  => null,
+            'new_route'   => null,
+            'edit_route'  => null,
+            'delete_route' => null,
         ]);
     }
 
@@ -1446,7 +2132,10 @@ class BackController extends AbstractController
             'colonnes'    => ['ID', 'Patient', 'Montant', 'Date', 'Statut'],
             'lignes'      => $factures,
             'champs'      => ['id', 'patient', 'montant', 'dateEmission', 'statutPaiement'],
-            'route_prefix' => 'back_factures',
+            'show_route'  => null,
+            'new_route'   => null,
+            'edit_route'  => null,
+            'delete_route' => null,
         ]);
     }
 
@@ -1460,7 +2149,10 @@ class BackController extends AbstractController
             'colonnes'    => ['ID', 'Patient', 'Compagnie', 'Police', 'Expiration'],
             'lignes'      => $assurances,
             'champs'      => ['id', 'patient', 'compagnie', 'numeroPolice', 'dateExpiration'],
-            'route_prefix' => 'back_assurance',
+            'show_route'  => null,
+            'new_route'   => null,
+            'edit_route'  => null,
+            'delete_route' => null,
         ]);
     }
 
@@ -1474,7 +2166,10 @@ class BackController extends AbstractController
             'colonnes'    => ['ID', 'Expéditeur', 'Destinataire', 'Contenu', 'Date', 'Lu'],
             'lignes'      => $messages,
             'champs'      => ['id', 'expediteur', 'destinataire', 'contenu', 'dateEnvoi', 'lu'],
-            'route_prefix' => 'back_messages',
+            'show_route'  => null,
+            'new_route'   => null,
+            'edit_route'  => null,
+            'delete_route' => null,
         ]);
     }
 
@@ -1488,7 +2183,10 @@ class BackController extends AbstractController
             'colonnes'    => ['ID', 'Destinataire', 'Type', 'Date', 'Lu'],
             'lignes'      => $notifications,
             'champs'      => ['id', 'destinataire', 'type', 'dateEnvoi', 'lu'],
-            'route_prefix' => 'back_notifications',
+            'show_route'  => null,
+            'new_route'   => null,
+            'edit_route'  => null,
+            'delete_route' => null,
         ]);
     }
 
@@ -1502,7 +2200,10 @@ class BackController extends AbstractController
             'colonnes'    => ['ID', 'Utilisateur', 'Action', 'Entité', 'Date', 'IP'],
             'lignes'      => $logs,
             'champs'      => ['id', 'utilisateur', 'action', 'entiteCible', 'dateAction', 'adresseIp'],
-            'route_prefix' => 'back_audit_logs',
+            'show_route'  => null,
+            'new_route'   => null,
+            'edit_route'  => null,
+            'delete_route' => null,
         ]);
     }
 
@@ -1516,7 +2217,10 @@ class BackController extends AbstractController
             'colonnes'    => ['ID', 'Consultation', 'Date', 'Tension', 'Pouls', 'Température'],
             'lignes'      => $signes,
             'champs'      => ['id', 'consultation', 'dateMesure', 'tensionArterielle', 'frequenceCardiaque', 'temperature'],
-            'route_prefix' => 'back_signes_vitaux',
+            'show_route'  => null,
+            'new_route'   => null,
+            'edit_route'  => null,
+            'delete_route' => null,
         ]);
     }
 
@@ -1530,7 +2234,10 @@ class BackController extends AbstractController
             'colonnes'    => ['ID', 'Patient', 'Consultation', 'Date', 'Note'],
             'lignes'      => $evaluations,
             'champs'      => ['id', 'patient', 'consultation', 'dateEvaluation', 'note'],
-            'route_prefix' => 'back_evaluations',
+            'show_route'  => null,
+            'new_route'   => null,
+            'edit_route'  => null,
+            'delete_route' => null,
         ]);
     }
 }

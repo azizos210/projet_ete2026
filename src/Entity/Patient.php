@@ -20,7 +20,7 @@ class Patient
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $utilisateur = null;
 
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: 'date', nullable: true)]
     private ?\DateTimeInterface $dateNaissance = null;
 
     #[ORM\Column(length: 10, enumType: GenreEnum::class, nullable: true)]

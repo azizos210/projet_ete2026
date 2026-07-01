@@ -2,21 +2,18 @@
 
 namespace App\Controller\Api;
 
-use App\Entity\User;
-use App\Entity\Utilisateur;
 use App\Entity\Administrateur;
 use App\Entity\Medecin;
 use App\Entity\Patient;
-use App\Entity\Infirmier;
-use App\Entity\SecretaireMedicale;
+use App\Entity\User;
+use App\Entity\Utilisateur;
+use App\Service\UserSyncService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/auth', name: 'api_auth_')]
@@ -26,9 +23,8 @@ class AuthController extends AbstractController
     public function register(
         Request $request,
         EntityManagerInterface $em,
-        UserPasswordHasherInterface $passwordHasher,
+        UserSyncService $userSyncService,
         ValidatorInterface $validator,
-        SerializerInterface $serializer
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
@@ -36,8 +32,9 @@ class AuthController extends AbstractController
             return $this->json(['message' => 'Champs requis manquants'], Response::HTTP_BAD_REQUEST);
         }
 
-        $existingUser = $em->getRepository(User::class)->findOneBy(['email' => $data['email']]);
-        if ($existingUser) {
+        $email = $userSyncService->normalizeEmail($data['email']);
+
+        if ($em->getRepository(Utilisateur::class)->findOneBy(['email' => $email])) {
             return $this->json(['message' => 'Cet email est déjà utilisé'], Response::HTTP_CONFLICT);
         }
 
@@ -49,10 +46,9 @@ class AuthController extends AbstractController
         }
 
         $user = new User();
-        $user->setEmail($data['email']);
-        $user->setFirstName($data['firstName']);
-        $user->setLastName($data['lastName']);
-        $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
+        $user->setEmail($email);
+        $user->setFirstName(trim($data['firstName']));
+        $user->setLastName(trim($data['lastName']));
         $user->setRoles([$requestedRole]);
 
         $errors = $validator->validate($user);
@@ -60,14 +56,15 @@ class AuthController extends AbstractController
             return $this->json(['message' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        $em->persist($user);
-
         $utilisateur = new Utilisateur();
-        $utilisateur->setEmail($data['email']);
-        $utilisateur->setNom($data['lastName']);
-        $utilisateur->setPrenom($data['firstName']);
-        $utilisateur->setPassword($passwordHasher->hashPassword($utilisateur, $data['password']));
+        $utilisateur->setEmail($email);
+        $utilisateur->setNom(trim($data['lastName']));
+        $utilisateur->setPrenom(trim($data['firstName']));
         $utilisateur->setRoles([$requestedRole]);
+
+        $userSyncService->hashAndSetPassword($user, $utilisateur, $data['password']);
+
+        $em->persist($user);
         $em->persist($utilisateur);
 
         $roleEntity = match ($requestedRole) {
@@ -90,70 +87,70 @@ class AuthController extends AbstractController
 
         return $this->json([
             'message' => 'Utilisateur créé avec succès',
-            'user' => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'firstName' => $user->getFirstName(),
-                'lastName' => $user->getLastName(),
-                'roles' => $user->getRoles(),
-            ],
+            'user' => $this->serializeUtilisateur($utilisateur),
         ], Response::HTTP_CREATED);
     }
 
     #[Route('/me', name: 'me', methods: ['GET'])]
-    public function me(SerializerInterface $serializer): JsonResponse
+    public function me(): JsonResponse
     {
-        $user = $this->getUser();
-        if (!$user) {
+        $utilisateur = $this->getAuthenticatedUtilisateur();
+        if (!$utilisateur) {
             return $this->json(['message' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $data = [
-            'id' => $user->getId(),
-            'email' => $user->getEmail(),
-            'firstName' => $user->getFirstName(),
-            'lastName' => $user->getLastName(),
-            'roles' => $user->getRoles(),
-        ];
-
-        return $this->json($data);
+        return $this->json($this->serializeUtilisateur($utilisateur));
     }
 
     #[Route('/profile', name: 'profile_update', methods: ['PUT'])]
     public function updateProfile(
         Request $request,
         EntityManagerInterface $em,
-        SerializerInterface $serializer
+        UserSyncService $userSyncService,
     ): JsonResponse {
-        $user = $this->getUser();
-        if (!$user) {
+        $utilisateur = $this->getAuthenticatedUtilisateur();
+        if (!$utilisateur) {
             return $this->json(['message' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
         }
 
         $data = json_decode($request->getContent(), true);
 
         if (isset($data['firstName'])) {
-            $user->setFirstName($data['firstName']);
+            $utilisateur->setPrenom(trim($data['firstName']));
         }
         if (isset($data['lastName'])) {
-            $user->setLastName($data['lastName']);
+            $utilisateur->setNom(trim($data['lastName']));
         }
         if (isset($data['email'])) {
-            $existing = $em->getRepository(User::class)->findOneBy(['email' => $data['email']]);
-            if ($existing && $existing->getId() !== $user->getId()) {
+            $email = $userSyncService->normalizeEmail($data['email']);
+            $existing = $em->getRepository(Utilisateur::class)->findOneBy(['email' => $email]);
+            if ($existing && $existing->getId() !== $utilisateur->getId()) {
                 return $this->json(['message' => 'Cet email est déjà utilisé'], Response::HTTP_CONFLICT);
             }
-            $user->setEmail($data['email']);
+            $utilisateur->setEmail($email);
         }
 
+        $userSyncService->syncUserFromUtilisateur($utilisateur);
         $em->flush();
 
-        return $this->json([
-            'id' => $user->getId(),
-            'email' => $user->getEmail(),
-            'firstName' => $user->getFirstName(),
-            'lastName' => $user->getLastName(),
-            'roles' => $user->getRoles(),
-        ]);
+        return $this->json($this->serializeUtilisateur($utilisateur));
+    }
+
+    private function getAuthenticatedUtilisateur(): ?Utilisateur
+    {
+        $user = $this->getUser();
+
+        return $user instanceof Utilisateur ? $user : null;
+    }
+
+    private function serializeUtilisateur(Utilisateur $utilisateur): array
+    {
+        return [
+            'id' => $utilisateur->getId(),
+            'email' => $utilisateur->getEmail(),
+            'firstName' => $utilisateur->getPrenom(),
+            'lastName' => $utilisateur->getNom(),
+            'roles' => $utilisateur->getRoles(),
+        ];
     }
 }

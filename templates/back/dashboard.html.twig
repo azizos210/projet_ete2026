@@ -165,7 +165,7 @@
         <div class="card table-card">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0"><i class="fas fa-calendar-check me-2 text-success"></i>Prochains rendez-vous</h5>
-                <a href="{{ path('back_rendez_vous') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                    <a href="{{ path('back_rendez_vous_index') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
             </div>
             <div class="card-body p-0">
                 <table class="table table-hover mb-0">
@@ -180,10 +180,10 @@
                     <tbody>
                         {% for rdv in prochains_rdv %}
                         <tr>
-                            <td>{{ rdv.patient.prenom }} {{ rdv.patient.nom }}</td>
-                            <td>{{ rdv.medecin.prenom }} {{ rdv.medecin.nom }}</td>
+                            <td>{{ rdv.patient.utilisateur.prenom }} {{ rdv.patient.utilisateur.nom }}</td>
+                            <td>{{ rdv.medecin.utilisateur.prenom }} {{ rdv.medecin.utilisateur.nom }}</td>
                             <td>{{ rdv.dateHeure|date('d/m/Y H:i') }}</td>
-                            <td><span class="badge {% if rdv.statut == 'confirme' %}bg-success{% elseif rdv.statut == 'en_attente' %}bg-warning{% else %}bg-secondary{% endif %}">{{ rdv.statut }}</span></td>
+                            <td><span class="badge {% if rdv.statut.value == 'confirme' %}bg-success{% elseif rdv.statut.value == 'en_attente' %}bg-warning{% else %}bg-secondary{% endif %}">{{ rdv.statut.value }}</span></td>
                         </tr>
                         {% else %}
                         <tr><td colspan="4" class="text-center text-muted py-3">Aucun rendez-vous</td></tr>

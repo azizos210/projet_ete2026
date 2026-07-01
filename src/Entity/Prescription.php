@@ -29,7 +29,7 @@ class Prescription
     private ?\DateTimeInterface $dateEmission = null;
 
     #[ORM\Column(length: 30, enumType: StatutPrescriptionEnum::class, options: ['default' => 'active'])]
-    private StatutPrescriptionEnum $statut = StatutPrescriptionEnum::ACTIVE;
+    private StatutPrescriptionEnum $statut;
 
     #[ORM\Column(options: ['default' => false])]
     private bool $pdfGenere = false;
@@ -40,6 +40,7 @@ class Prescription
     public function __construct()
     {
         $this->lignes = new ArrayCollection();
+        $this->statut = StatutPrescriptionEnum::ACTIVE;
     }
 
     #[ORM\PrePersist]

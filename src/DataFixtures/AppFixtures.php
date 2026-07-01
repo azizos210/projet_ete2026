@@ -3,37 +3,35 @@
 namespace App\DataFixtures;
 
 use App\Entity\User;
+use App\Service\UserSyncService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
     public function __construct(
-        private readonly UserPasswordHasherInterface $hasher,
+        private readonly UserSyncService $userSyncService,
     ) {
     }
 
     public function load(ObjectManager $manager): void
     {
-        // ===== Utilisateur admin =====
         $admin = new User();
         $admin->setEmail('admin@exemple.fr')
               ->setFirstName('Admin')
               ->setLastName('App')
-              ->setRoles(['ROLE_ADMIN'])
-              ->setPassword($this->hasher->hashPassword($admin, 'password'));
+              ->setRoles(['ROLE_ADMIN']);
+        $adminUtilisateur = $this->userSyncService->syncUtilisateurFromUser($admin);
+        $this->userSyncService->hashAndSetPassword($admin, $adminUtilisateur, 'password');
         $manager->persist($admin);
 
-        // ===== Utilisateur standard =====
         $user = new User();
         $user->setEmail('user@exemple.fr')
              ->setFirstName('Jean')
-             ->setLastName('Dupont')
-             ->setPassword($this->hasher->hashPassword($user, 'password'));
+             ->setLastName('Dupont');
+        $userUtilisateur = $this->userSyncService->syncUtilisateurFromUser($user);
+        $this->userSyncService->hashAndSetPassword($user, $userUtilisateur, 'password');
         $manager->persist($user);
-
-        // ===== Ajoutez vos fixtures ici =====
 
         $manager->flush();
     }
