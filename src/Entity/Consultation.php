@@ -73,6 +73,7 @@ class Consultation
         $this->signesVitaux  = new ArrayCollection();
         $this->documents     = new ArrayCollection();
         $this->prescriptions = new ArrayCollection();
+        $this->ordonnances   = new ArrayCollection();
         $this->date          = new \DateTime();
     }
 

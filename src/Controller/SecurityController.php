@@ -4,11 +4,11 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\RegistrationFormType;
+use App\Service\UserSyncService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
@@ -36,8 +36,8 @@ class SecurityController extends AbstractController
     #[Route('/inscription', name: 'app_register')]
     public function register(
         Request $request,
-        UserPasswordHasherInterface $hasher,
         EntityManagerInterface $em,
+        UserSyncService $userSyncService,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_home');
@@ -48,7 +48,13 @@ class SecurityController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $user->setPassword($hasher->hashPassword($user, $form->get('plainPassword')->getData()));
+            $email = $userSyncService->normalizeEmail((string) $user->getEmail());
+            $user->setEmail($email);
+            $plainPassword = $form->get('plainPassword')->getData();
+
+            $utilisateur = $userSyncService->syncUtilisateurFromUser($user);
+            $userSyncService->hashAndSetPassword($user, $utilisateur, $plainPassword);
+
             $em->persist($user);
             $em->flush();
             $this->addFlash('success', 'Compte créé avec succès !');

@@ -10,7 +10,7 @@ class BackOfficeExtension extends AbstractExtension
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('get_cell_value', [$this, 'getCellValue']),
+            new TwigFunction('', [$this, 'getCellValue']),
         ];
     }
 
@@ -56,12 +56,12 @@ class BackOfficeExtension extends AbstractExtension
             return $value->format('d/m/Y H:i');
         }
 
+        if ($value instanceof \BackedEnum) {
+            return (string) $value->value;
+        }
+
         if ($value instanceof \UnitEnum) {
-            return match (true) {
-                method_exists($value, 'value') => (string) $value->value,
-                method_exists($value, 'name')  => (string) $value->name,
-                default                        => (string) $value,
-            };
+            return $value->name;
         }
 
         if (is_bool($value)) {

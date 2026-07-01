@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User } from '../types';
 import { authApi } from '../api/services';
+import { clearStoredAuth, getStoredToken, isJwtExpired, setStoredToken, setStoredRefreshToken } from '../api/token';
 
 interface AuthContextType {
   user: User | null;
@@ -19,21 +20,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem('user');
     return stored ? JSON.parse(stored) : null;
   });
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(() => {
+    const storedToken = getStoredToken();
+    if (storedToken && isJwtExpired(storedToken)) {
+      clearStoredAuth();
+      return null;
+    }
+    return storedToken;
+  });
   const [loading, setLoading] = useState(false);
 
   const login = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
+      // Ensure no stale token is attached to the login request
+      clearStoredAuth();
       const data = await authApi.login(email, password);
-      const tokenData = data.token;
-      localStorage.setItem('token', tokenData);
+      const tokenData = data.token || data.access_token || data.accessToken;
+      const refresh = data.refresh_token || data.refreshToken;
+
+      if (!tokenData) {
+        throw new Error('Authentication failed: no token returned');
+      }
+
+      setStoredToken(tokenData);
+      if (refresh) setStoredRefreshToken(refresh);
       setToken(tokenData);
 
       const userData = await authApi.me();
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
     } catch (err: any) {
+      clearStoredAuth();
+      setToken(null);
+      setUser(null);
       const msg = err?.response?.data?.message || err?.message || 'Une erreur est survenue';
       throw new Error(msg);
     } finally {
@@ -51,8 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    clearStoredAuth();
     setToken(null);
     setUser(null);
   }, []);
@@ -63,6 +82,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (token && !user) {
+      if (isJwtExpired(token)) {
+        logout();
+        return;
+      }
+
       authApi.me()
         .then((userData) => {
           setUser(userData);

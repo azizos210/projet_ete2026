@@ -23,10 +23,11 @@ class PatientApiController extends AbstractController
 
     private function getPatientFromUser(): ?Patient
     {
-        $user = $this->getUser();
-        if (!$user) return null;
-        $utilisateur = $this->em->getRepository(Utilisateur::class)->findOneBy(['email' => $user->getEmail()]);
-        if (!$utilisateur) return null;
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return null;
+        }
+
         return $this->em->getRepository(Patient::class)->findOneBy(['utilisateur' => $utilisateur]);
     }
 
