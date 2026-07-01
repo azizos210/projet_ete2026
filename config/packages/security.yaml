@@ -13,6 +13,18 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
+        api:
+            pattern: ^/api/
+            stateless: true
+            provider: app_user_provider
+            jwt: ~
+            json_login:
+                check_path: /api/login_check
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
         main:
             lazy: true
             provider: app_user_provider
@@ -23,18 +35,35 @@ security:
                 default_target_path: app_home
             logout:
                 path: app_logout
-                target: app_home
+                target: /front/login
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800
                 path: /
 
     role_hierarchy:
-        ROLE_ADMIN: ROLE_USER
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
+        ROLE_ADMIN: [ROLE_DIRECTEUR_MEDICAL, ROLE_USER]
+        ROLE_DIRECTEUR_MEDICAL: [ROLE_MEDECIN, ROLE_USER]
+        ROLE_MEDECIN: [ROLE_INFIRMIER, ROLE_USER]
+        ROLE_INFIRMIER: [ROLE_USER]
+        ROLE_SECRETAIRE: [ROLE_USER]
+        ROLE_PATIENT: [ROLE_USER]
 
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profil, roles: ROLE_USER }
+        - { path: ^/connexion, roles: PUBLIC_ACCESS }
+        - { path: ^/inscription, roles: PUBLIC_ACCESS }
+        - { path: ^/deconnexion, roles: PUBLIC_ACCESS }
+        - { path: ^/front, roles: PUBLIC_ACCESS }
+        - { path: ^/back, roles: PUBLIC_ACCESS }
+        - { path: ^/api/login_check, roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth, roles: PUBLIC_ACCESS }
+        - { path: ^/api/admin, roles: ROLE_ADMIN }
+        - { path: ^/api/medecin, roles: ROLE_MEDECIN }
+        - { path: ^/api/patient, roles: ROLE_PATIENT }
+        - { path: ^/api/argon, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: ROLE_USER }
+        - { path: ^/admin, roles: ROLE_ADMIN }
 
 when@test:
     security:

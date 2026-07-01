@@ -1,0 +1,68 @@
+{% extends 'back/layout.html.twig' %}
+
+{% block title %}{{ form_title }} — Back Office{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card table-card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0"><i class="fas fa-{% if user %}edit{% else %}plus{% endif %} me-2 text-primary"></i>{{ form_title }}</h5>
+                <a href="{{ path('back_utilisateurs') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Retour à la liste
+                </a>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" action="{{ form_action }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token(user ? 'utilisateur_edit_' ~ user.id : 'utilisateur_new') }}">
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Prénom <span class="text-danger">*</span></label>
+                            <input type="text" name="firstName" class="form-control" required value="{{ user.firstName ?? '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nom <span class="text-danger">*</span></label>
+                            <input type="text" name="lastName" class="form-control" required value="{{ user.lastName ?? '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" required value="{{ user.email ?? '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Mot de passe {% if not user %}<span class="text-danger">*</span>{% endif %}</label>
+                            <input type="password" name="password" class="form-control" {% if not user %}required{% endif %}
+                                   placeholder="{% if user %}Laisser vide pour conserver{% endif %}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Rôles</label>
+                            <div class="d-flex flex-wrap gap-3 pt-2">
+                                {% set all_roles = ['ROLE_ADMIN', 'ROLE_MEDECIN', 'ROLE_PATIENT', 'ROLE_INFIRMIER', 'ROLE_SECRETAIRE'] %}
+                                {% for role in all_roles %}
+                                    <div class="form-check">
+                                        <input type="checkbox" name="roles[]" value="{{ role }}" class="form-check-input"
+                                               id="role_{{ role }}" {% if role in selected_roles %}checked{% endif %}>
+                                        <label class="form-check-label" for="role_{{ role }}">
+                                            {{ role|replace({ 'ROLE_': '' })|capitalize }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>{{ submit_label }}
+                        </button>
+                        <a href="{{ path('back_utilisateurs') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

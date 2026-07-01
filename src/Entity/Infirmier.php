@@ -55,4 +55,6 @@ class Infirmier
     public function getSignesVitaux(): Collection { return $this->signesVitaux; }
     public function getAdministrations(): Collection { return $this->administrations; }
     public function getConsultationsAssistees(): Collection { return $this->consultationsAssistees; }
+
+    public function __toString(): string { return $this->getUtilisateur()?->getNomComplet() ?? 'Infirmier #' . $this->getId(); }
 }

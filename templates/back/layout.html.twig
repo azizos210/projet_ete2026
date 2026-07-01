@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Back Office{% endblock %} — Hôpital</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-collapsed: 70px;
+            --primary: #006D77;
+            --primary-dark: #004D56;
+            --accent: #E29578;
+            --bg-light: #f4f6f9;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-light); overflow-x: hidden; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--primary-dark), #00353B);
+            color: #fff; z-index: 1000; transition: width 0.3s ease; overflow: hidden;
+        }
+        .sidebar.collapsed { width: var(--sidebar-collapsed); }
+        .sidebar-header {
+            display: flex; align-items: center; gap: 12px; padding: 16px 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.1); height: 64px; white-space: nowrap;
+        }
+        .sidebar-header .brand-text { font-size: 1.1rem; font-weight: 700; transition: opacity 0.2s; }
+        .sidebar.collapsed .sidebar-header .brand-text { opacity: 0; width: 0; overflow: hidden; }
+        .sidebar .toggle-btn {
+            background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer;
+            margin-left: auto; padding: 4px; transition: transform 0.3s;
+        }
+        .sidebar.collapsed .toggle-btn { transform: rotate(180deg); margin-left: 0; }
+
+        .sidebar-nav { padding: 8px 0; overflow-y: auto; height: calc(100vh - 64px); }
+        .sidebar-nav .nav-section { padding: 8px 18px 4px; font-size: .7rem; text-transform: uppercase; letter-spacing: 1px; opacity: .5; white-space: nowrap; }
+        .sidebar.collapsed .nav-section { display: none; }
+        .sidebar-nav a {
+            display: flex; align-items: center; gap: 14px; padding: 10px 18px; color: rgba(255,255,255,.7);
+            text-decoration: none; transition: all .2s; white-space: nowrap; border-left: 3px solid transparent;
+        }
+        .sidebar-nav a:hover, .sidebar-nav a.active { color: #fff; background: rgba(255,255,255,.1); border-left-color: var(--accent); }
+        .sidebar-nav a i { width: 20px; text-align: center; font-size: 1rem; flex-shrink: 0; }
+        .sidebar-nav a .nav-label { transition: opacity .2s; }
+        .sidebar.collapsed .sidebar-nav a .nav-label { opacity: 0; width: 0; overflow: hidden; }
+
+        /* ===== MAIN ===== */
+        .main-wrapper { margin-left: var(--sidebar-width); transition: margin-left .3s ease; min-height: 100vh; }
+        .sidebar.collapsed ~ .main-wrapper,
+        .main-wrapper.expanded { margin-left: var(--sidebar-collapsed); }
+
+        .topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 24px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.08);
+            position: sticky; top: 0; z-index: 999; height: 64px;
+        }
+        .topbar .page-title { font-size: 1.25rem; font-weight: 600; color: #333; }
+        .topbar .user-info { display: flex; align-items: center; gap: 16px; }
+
+        .content { padding: 24px; }
+
+        /* ===== STAT CARDS ===== */
+        .stat-card {
+            border-radius: 16px; border: none; transition: transform .2s, box-shadow .2s;
+            overflow: hidden; position: relative;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,.12); }
+        .stat-card .icon-bg {
+            position: absolute; right: -10px; bottom: -10px; font-size: 5rem; opacity: .1;
+        }
+        .stat-card .card-body { position: relative; z-index: 1; }
+
+        /* ===== TABLE ===== */
+        .table-card { border-radius: 16px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+
+        .badge-role { font-size: .75rem; padding: 4px 10px; border-radius: 20px; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .sidebar { width: var(--sidebar-collapsed); }
+            .sidebar .sidebar-header .brand-text { opacity: 0; width: 0; overflow: hidden; }
+            .sidebar .nav-section { display: none; }
+            .sidebar .nav-label { display: none; }
+            .main-wrapper { margin-left: var(--sidebar-collapsed); }
+        }
+    </style>
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <i class="fas fa-hospital" style="font-size: 1.5rem; flex-shrink: 0;"></i>
+        <span class="brand-text">Hôpital Admin</span>
+        <button class="toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    </div>
+    <div class="sidebar-nav">
+        <div class="nav-section">Navigation</div>
+        <a href="{{ path('back_dashboard') }}" class="{% if app.request.get('_route') starts with 'back_dashboard' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt"></i><span class="nav-label">Dashboard</span>
+        </a>
+        <a href="{{ path('back_utilisateurs') }}">
+            <i class="fas fa-users"></i><span class="nav-label">Utilisateurs</span>
+        </a>
+        <a href="{{ path('back_medecins') }}">
+            <i class="fas fa-user-md"></i><span class="nav-label">Médecins</span>
+        </a>
+        <a href="{{ path('back_patients') }}">
+            <i class="fas fa-user-injured"></i><span class="nav-label">Patients</span>
+        </a>
+        <a href="{{ path('back_infirmiers') }}">
+            <i class="fas fa-user-nurse"></i><span class="nav-label">Infirmiers</span>
+        </a>
+        <a href="{{ path('back_secretaires') }}">
+            <i class="fas fa-headset"></i><span class="nav-label">Secrétaires</span>
+        </a>
+
+        <div class="nav-section">Médical</div>
+        <a href="{{ path('back_consultations') }}">
+            <i class="fas fa-stethoscope"></i><span class="nav-label">Consultations</span>
+        </a>
+        <a href="{{ path('back_rendez_vous') }}">
+            <i class="fas fa-calendar-check"></i><span class="nav-label">Rendez-vous</span>
+        </a>
+        <a href="{{ path('back_dossiers_medicaux') }}">
+            <i class="fas fa-folder-open"></i><span class="nav-label">Dossiers médicaux</span>
+        </a>
+        <a href="{{ path('back_prescriptions') }}">
+            <i class="fas fa-prescription"></i><span class="nav-label">Prescriptions</span>
+        </a>
+        <a href="{{ path('back_medicaments') }}">
+            <i class="fas fa-pills"></i><span class="nav-label">Médicaments</span>
+        </a>
+
+        <div class="nav-section">Administration</div>
+        <a href="{{ path('back_paiements') }}">
+            <i class="fas fa-credit-card"></i><span class="nav-label">Paiements</span>
+        </a>
+        <a href="{{ path('back_factures') }}">
+            <i class="fas fa-file-invoice"></i><span class="nav-label">Factures</span>
+        </a>
+        <a href="{{ path('back_assurance') }}">
+            <i class="fas fa-shield-alt"></i><span class="nav-label">Assurances</span>
+        </a>
+        <a href="{{ path('back_messages') }}">
+            <i class="fas fa-envelope"></i><span class="nav-label">Messages</span>
+        </a>
+        <a href="{{ path('back_notifications') }}">
+            <i class="fas fa-bell"></i><span class="nav-label">Notifications</span>
+        </a>
+        <a href="{{ path('back_audit_logs') }}">
+            <i class="fas fa-history"></i><span class="nav-label">Audit logs</span>
+        </a>
+        <a href="{{ path('back_signes_vitaux') }}">
+            <i class="fas fa-heartbeat"></i><span class="nav-label">Signes vitaux</span>
+        </a>
+        <a href="{{ path('back_evaluations') }}">
+            <i class="fas fa-clipboard-list"></i><span class="nav-label">Évaluations</span>
+        </a>
+
+        <div class="nav-section">Session</div>
+        <a href="{{ path('app_logout') }}" style="color: #E29578;">
+            <i class="fas fa-sign-out-alt"></i><span class="nav-label">Déconnexion</span>
+        </a>
+    </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main-wrapper" id="mainWrapper">
+    <div class="topbar">
+        <div class="page-title">{% block page_title %}Dashboard{% endblock %}</div>
+        <div class="user-info">
+            {% if app.user and is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('admin_dashboard') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-cog"></i> Admin
+                </a>
+            {% endif %}
+            <a href="/front" class="btn btn-outline-info btn-sm" target="_blank">
+                <i class="fas fa-desktop"></i> Frontend
+            </a>
+            {% if app.user %}
+            <span><i class="fas fa-user-circle me-1"></i>{{ app.user.fullName }}</span>
+            <a href="{{ path('app_logout') }}" class="btn btn-outline-danger btn-sm">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+            {% else %}
+            <a href="{{ path('app_login') }}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-sign-in-alt"></i> Connexion
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="content">
+        {% block body %}{% endblock %}
+    </div>
+</div>
+
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+        document.getElementById('mainWrapper').classList.toggle('expanded');
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block javascripts %}{% endblock %}
+</body>
+</html>

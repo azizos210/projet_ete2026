@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="apple-touch-icon" sizes="76x76" href="../assets/img/apple-icon.png" />
+    <link rel="icon" type="image/png" href="../assets/img/favicon.png" />
+    <title>Tableau de bord - Mon Espace Sant&eacute;</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+    <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+    <link href="../assets/css/nucleo-icons.css" rel="stylesheet" />
+    <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <link href="../assets/css/argon-dashboard-tailwind.css?v=1.0.1" rel="stylesheet" />
+  </head>
+
+  <body class="m-0 font-sans text-base antialiased font-normal dark:bg-slate-900 leading-default bg-gray-50 text-slate-500">
+    <div class="absolute w-full bg-gradient-to-r from-teal-600 to-cyan-600 dark:hidden min-h-75"></div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="fixed inset-y-0 flex-wrap items-center justify-between block w-full p-0 my-4 overflow-y-auto antialiased transition-transform duration-200 -translate-x-full bg-white border-0 shadow-xl dark:shadow-none dark:bg-slate-850 max-w-64 ease-nav-brand z-990 xl:ml-6 rounded-2xl xl:left-0 xl:translate-x-0" aria-expanded="false">
+      <div class="h-19">
+        <i class="absolute top-0 right-0 p-4 opacity-50 cursor-pointer fas fa-times dark:text-white text-slate-400 xl:hidden" sidenav-close></i>
+        <a class="block px-8 py-6 m-0 text-sm whitespace-nowrap dark:text-white text-slate-700" href="javascript:;">
+          <img src="../assets/img/logo-ct-dark.png" class="inline h-full max-w-full transition-all duration-200 dark:hidden ease-nav-brand max-h-8" alt="logo" />
+          <img src="../assets/img/logo-ct.png" class="hidden h-full max-w-full transition-all duration-200 dark:inline ease-nav-brand max-h-8" alt="logo" />
+          <span id="sidebar-title" class="ml-1 font-semibold transition-all duration-200 ease-nav-brand">Mon Espace Sant&eacute;</span>
+        </a>
+      </div>
+
+      <hr class="h-px mt-0 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-white dark:to-transparent" />
+
+      <div class="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">
+        <ul class="flex flex-col pl-0 mb-0">
+
+          <li class="w-full mt-4">
+            <h6 class="pl-6 ml-2 text-xs font-bold leading-tight uppercase dark:text-white opacity-60">Navigation</h6>
+          </li>
+
+          <li class="mt-0.5 w-full">
+            <a class="dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="javascript:;">
+              <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                <i class="relative top-0 text-sm leading-normal text-blue-500 ni ni-calendar-grid-58"></i>
+              </div>
+              <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Mes Rendez-vous</span>
+            </a>
+          </li>
+
+          <li class="mt-0.5 w-full">
+            <a class="dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="javascript:;">
+              <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center fill-current stroke-0 text-center xl:p-2.5">
+                <i class="relative top-0 text-sm leading-normal text-emerald-500 ni ni-archive-2"></i>
+              </div>
+              <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Mon Dossier</span>
+            </a>
+          </li>
+
+          <li class="mt-0.5 w-full">
+            <a class="dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="javascript:;">
+              <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                <i class="relative top-0 text-sm leading-normal text-cyan-500 ni ni-single-copy-04"></i>
+              </div>
+              <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Mes Documents</span>
+            </a>
+          </li>
+
+          <li class="mt-0.5 w-full">
+            <a class="dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="javascript:;">
+              <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                <i class="relative top-0 text-sm leading-normal text-orange-500 ni ni-notes"></i>
+              </div>
+              <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Mes Ordonnances</span>
+            </a>
+          </li>
+
+          <li class="mt-0.5 w-full">
+            <a class="dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="../pages/profile.html">
+              <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                <i class="relative top-0 text-sm leading-normal text-slate-700 ni ni-single-02"></i>
+              </div>
+              <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Mon Profil</span>
+            </a>
+          </li>
+
+          <li class="mt-0.5 w-full">
+            <a class="dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="/front/login">
+              <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                <i class="relative top-0 text-sm leading-normal text-red-500 ni ni-button-power"></i>
+              </div>
+              <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">D&eacute;connexion</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="mx-4">
+        <p class="invisible hidden text-gray-800 text-red-500 text-red-600 text-blue-500 dark:bg-white bg-slate-500 bg-gray-500/30 bg-cyan-500/30 bg-emerald-500/30 bg-orange-500/30 bg-red-500/30 after:bg-gradient-to-tl after:from-zinc-800 after:to-zinc-700 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 after:from-blue-700 after:to-cyan-500 after:from-orange-500 after:to-yellow-500 after:from-green-600 after:to-lime-400 after:from-red-600 after:to-orange-600 after:from-slate-600 after:to-slate-300 text-emerald-500 text-cyan-500 text-slate-400"></p>
+        <div class="relative flex flex-col min-w-0 break-words bg-transparent border-0 shadow-none rounded-2xl bg-clip-border" sidenav-card>
+          <img class="w-1/3 mx-auto" src="../assets/img/illustrations/icon-documentation.svg" alt="patient" />
+          <div class="flex-auto w-full p-4 pt-2 text-center">
+            <div class="transition-all duration-200 ease-nav-brand">
+              <h6 id="sidebar-name" class="mb-0 dark:text-white text-slate-700">Patient</h6>
+              <p id="sidebar-email" class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-60">email@exemple.com</p>
+            </div>
+          </div>
+        </div>
+        <a href="/front/login" class="inline-block w-full px-8 py-2 mb-4 text-xs font-bold leading-normal text-center text-white capitalize transition-all ease-in rounded-lg shadow-md bg-slate-700 bg-150 hover:shadow-xs hover:-translate-y-px">
+          <i class="mr-1 fa fa-sign-out"></i> D&eacute;connexion
+        </a>
+      </div>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <main class="relative h-full max-h-screen transition-all duration-200 ease-in-out xl:ml-68 rounded-xl">
+
+      <!-- Navbar -->
+      <nav class="relative flex flex-wrap items-center justify-between px-0 py-2 mx-6 transition-all ease-in shadow-none duration-250 rounded-2xl lg:flex-nowrap lg:justify-start" navbar-main navbar-scroll="false">
+        <div class="flex items-center justify-between w-full px-4 py-1 mx-auto flex-wrap-inherit">
+          <nav>
+            <ol class="flex flex-wrap pt-1 mr-12 bg-transparent rounded-lg sm:mr-16">
+              <li class="text-sm leading-normal">
+                <a class="text-white opacity-50" href="javascript:;">Pages</a>
+              </li>
+              <li class="text-sm pl-2 capitalize leading-normal text-white before:float-left before:pr-2 before:text-white before:content-['/']" aria-current="page">Tableau de bord</li>
+            </ol>
+            <h6 class="mb-0 font-bold text-white capitalize">Tableau de bord</h6>
+          </nav>
+
+          <div class="flex items-center mt-2 grow sm:mt-0 sm:mr-6 md:mr-0 lg:flex lg:basis-auto">
+            <div class="flex items-center md:ml-auto md:pr-4">
+              <div class="relative flex flex-wrap items-stretch w-full transition-all rounded-lg ease">
+                <span class="text-sm ease leading-5.6 absolute z-50 -ml-px flex h-full items-center whitespace-nowrap rounded-lg rounded-tr-none rounded-br-none border border-r-0 border-transparent bg-transparent py-2 px-2.5 text-center font-normal text-slate-500 transition-all">
+                  <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="pl-9 text-sm focus:shadow-primary-outline ease w-1/100 leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-teal-500 focus:outline-none focus:transition-shadow" placeholder="Rechercher..." />
+              </div>
+            </div>
+            <ul class="flex flex-row justify-end pl-0 mb-0 list-none md-max:w-full">
+
+              <li class="flex items-center pl-4 xl:hidden">
+                <a href="javascript:;" class="block p-0 text-sm text-white transition-all ease-nav-brand" sidenav-trigger>
+                  <div class="w-4.5 overflow-hidden">
+                    <i class="ease mb-0.75 relative block h-0.5 rounded-sm bg-white transition-all"></i>
+                    <i class="ease mb-0.75 relative block h-0.5 rounded-sm bg-white transition-all"></i>
+                    <i class="ease relative block h-0.5 rounded-sm bg-white transition-all"></i>
+                  </div>
+                </a>
+              </li>
+
+              <li class="relative flex items-center pr-2">
+                <p class="hidden transform-dropdown-show"></p>
+                <a href="javascript:;" class="block p-0 text-sm text-white transition-all ease-nav-brand" dropdown-trigger aria-expanded="false">
+                  <i class="cursor-pointer fa fa-bell"></i>
+                </a>
+                <ul dropdown-menu class="text-sm transform-dropdown before:font-awesome before:leading-default before:duration-350 before:ease lg:shadow-3xl duration-250 min-w-44 before:sm:right-8 before:text-5.5 pointer-events-none absolute right-0 top-0 z-50 origin-top list-none rounded-lg border-0 border-solid border-transparent dark:shadow-dark-xl dark:bg-slate-850 bg-white bg-clip-padding px-2 py-4 text-left text-slate-500 opacity-0 transition-all before:absolute before:right-2 before:left-auto before:top-0 before:z-50 before:inline-block before:font-normal before:text-white before:antialiased before:transition-all before:content-['\f0d8'] sm:-mr-6 lg:absolute lg:right-0 lg:left-auto lg:mt-2 lg:block lg:cursor-pointer">
+                  <li class="relative mb-2">
+                    <a class="dark:hover:bg-slate-900 ease py-1.2 clear-both block w-full whitespace-nowrap rounded-lg bg-transparent px-4 duration-300 hover:bg-gray-200 hover:text-slate-700 lg:transition-colors" href="javascript:;">
+                      <div class="flex py-1">
+                        <div class="my-auto">
+                          <img src="../assets/img/team-2.jpg" class="inline-flex items-center justify-center mr-4 text-sm text-white h-9 w-9 max-w-none rounded-xl" />
+                        </div>
+                        <div class="flex flex-col justify-center">
+                          <h6 class="mb-1 text-sm font-normal leading-normal dark:text-white"><span class="font-semibold">Rappel</span> Consultation demain</h6>
+                          <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white/80">
+                            <i class="mr-1 fa fa-clock"></i> Il y a 2 heures
+                          </p>
+                        </div>
+                      </div>
+                    </a>
+                  </li>
+                  <li class="relative mb-2">
+                    <a class="dark:hover:bg-slate-900 ease py-1.2 clear-both block w-full whitespace-nowrap rounded-lg px-4 transition-colors duration-300 hover:bg-gray-200 hover:text-slate-700" href="javascript:;">
+                      <div class="flex py-1">
+                        <div class="my-auto">
+                          <img src="../assets/img/small-logos/logo-spotify.svg" class="inline-flex items-center justify-center mr-4 text-sm text-white bg-gradient-to-tl from-zinc-800 to-zinc-700 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 h-9 w-9 max-w-none rounded-xl" />
+                        </div>
+                        <div class="flex flex-col justify-center">
+                          <h6 class="mb-1 text-sm font-normal leading-normal dark:text-white"><span class="font-semibold">R&eacute;sultat</span> Analyse sanguine disponible</h6>
+                          <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white/80">
+                            <i class="mr-1 fa fa-clock"></i> Il y a 1 jour
+                          </p>
+                        </div>
+                      </div>
+                    </a>
+                  </li>
+                  <li class="relative">
+                    <a class="dark:hover:bg-slate-900 ease py-1.2 clear-both block w-full whitespace-nowrap rounded-lg px-4 transition-colors duration-300 hover:bg-gray-200 hover:text-slate-700" href="javascript:;">
+                      <div class="flex py-1">
+                        <div class="inline-flex items-center justify-center my-auto mr-4 text-sm text-white transition-all duration-200 ease-nav-brand bg-gradient-to-tl from-teal-600 to-cyan-500 h-9 w-9 rounded-xl">
+                          <i class="ni ni-check-bold"></i>
+                        </div>
+                        <div class="flex flex-col justify-center">
+                          <h6 class="mb-1 text-sm font-normal leading-normal dark:text-white">Paiement confirm&eacute;</h6>
+                          <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white/80">
+                            <i class="mr-1 fa fa-clock"></i> Il y a 2 jours
+                          </p>
+                        </div>
+                      </div>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <!-- ===== CONTENT ===== -->
+      <div class="w-full px-6 py-6 mx-auto">
+
+        <!-- Stats Cards -->
+        <div class="flex flex-wrap -mx-3">
+          <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
+            <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="flex-auto p-4">
+                <div class="flex flex-row -mx-3">
+                  <div class="flex-none w-2/3 max-w-full px-3">
+                    <div>
+                      <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Prochains RDV</p>
+                      <h5 id="stat-1" class="mb-2 font-bold dark:text-white">0</h5>
+                      <p class="mb-0 dark:text-white dark:opacity-60">
+                        <span id="stat-1-sub" class="text-sm font-bold leading-normal text-emerald-500">--</span> rendez-vous
+                      </p>
+                    </div>
+                  </div>
+                  <div class="px-3 text-right basis-1/3">
+                    <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-teal-500 to-cyan-500">
+                      <i class="ni leading-none ni-calendar-grid-58 text-lg relative top-3.5 text-white"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
+            <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="flex-auto p-4">
+                <div class="flex flex-row -mx-3">
+                  <div class="flex-none w-2/3 max-w-full px-3">
+                    <div>
+                      <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Consultations</p>
+                      <h5 id="stat-2" class="mb-2 font-bold dark:text-white">0</h5>
+                      <p class="mb-0 dark:text-white dark:opacity-60">
+                        <span id="stat-2-sub" class="text-sm font-bold leading-normal text-emerald-500">--</span> r&eacute;centes
+                      </p>
+                    </div>
+                  </div>
+                  <div class="px-3 text-right basis-1/3">
+                    <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-blue-600 to-blue-400">
+                      <i class="ni leading-none ni-paper-diploma text-lg relative top-3.5 text-white"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
+            <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="flex-auto p-4">
+                <div class="flex flex-row -mx-3">
+                  <div class="flex-none w-2/3 max-w-full px-3">
+                    <div>
+                      <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Documents</p>
+                      <h5 id="stat-3" class="mb-2 font-bold dark:text-white">0</h5>
+                      <p class="mb-0 dark:text-white dark:opacity-60">
+                        <span id="stat-3-sub" class="text-sm font-bold leading-normal text-emerald-500">--</span> r&eacute;cents
+                      </p>
+                    </div>
+                  </div>
+                  <div class="px-3 text-right basis-1/3">
+                    <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-emerald-500 to-teal-400">
+                      <i class="ni leading-none ni-single-copy-04 text-lg relative top-3.5 text-white"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-full max-w-full px-3 sm:w-1/2 sm:flex-none xl:w-1/4">
+            <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="flex-auto p-4">
+                <div class="flex flex-row -mx-3">
+                  <div class="flex-none w-2/3 max-w-full px-3">
+                    <div>
+                      <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Groupe Sanguin</p>
+                      <h5 id="stat-4" class="mb-2 font-bold dark:text-white">--</h5>
+                      <p class="mb-0 dark:text-white dark:opacity-60">
+                        <span id="stat-4-sub" class="text-sm font-bold leading-normal text-emerald-500">--</span>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="px-3 text-right basis-1/3">
+                    <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-orange-500 to-yellow-500">
+                      <i class="ni leading-none ni-drops text-lg relative top-3.5 text-white"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Carousel + Patient Info -->
+        <div class="flex flex-wrap mt-6 -mx-3">
+          <div class="w-full max-w-full px-3 mt-0 lg:w-5/12 lg:flex-none">
+            <div slider class="relative w-full h-full overflow-hidden rounded-2xl">
+              <div slide class="absolute w-full h-full transition-all duration-500">
+                <img class="object-cover h-full" src="../assets/img/carousel-1.jpg" alt="Bienvenue" />
+                <div class="block text-start ml-12 left-0 bottom-0 absolute right-[15%] pt-5 pb-5 text-white">
+                  <div class="inline-block w-8 h-8 mb-4 text-center text-black bg-white bg-center rounded-lg fill-current stroke-none">
+                    <i class="top-0.75 text-xxs relative text-slate-700 ni ni-heart-2"></i>
+                  </div>
+                  <h5 id="carousel-title" class="mb-1 text-white">Bienvenue</h5>
+                  <p id="carousel-text" class="dark:opacity-80">Acc&eacute;dez &agrave; vos informations m&eacute;dicales en un clic.</p>
+                </div>
+              </div>
+              <div slide class="absolute w-full h-full transition-all duration-500">
+                <img class="object-cover h-full" src="../assets/img/carousel-2.jpg" alt="Sant&eacute;" />
+                <div class="block text-start ml-12 left-0 bottom-0 absolute right-[15%] pt-5 pb-5 text-white">
+                  <div class="inline-block w-8 h-8 mb-4 text-center text-black bg-white bg-center rounded-lg fill-current stroke-none">
+                    <i class="top-0.75 text-xxs relative text-slate-700 ni ni-bulb-61"></i>
+                  </div>
+                  <h5 class="mb-1 text-white">Suivez votre sant&eacute;</h5>
+                  <p class="dark:opacity-80">Consultez vos derniers r&eacute;sultats et indicateurs de sant&eacute;.</p>
+                </div>
+              </div>
+              <div slide class="absolute w-full h-full transition-all duration-500">
+                <img class="object-cover h-full" src="../assets/img/carousel-3.jpg" alt="Rendez-vous" />
+                <div class="block text-start ml-12 left-0 bottom-0 absolute right-[15%] pt-5 pb-5 text-white">
+                  <div class="inline-block w-8 h-8 mb-4 text-center text-black bg-white bg-center rounded-lg fill-current stroke-none">
+                    <i class="top-0.75 text-xxs relative text-slate-700 ni ni-trophy"></i>
+                  </div>
+                  <h5 class="mb-1 text-white">G&eacute;rez vos rendez-vous</h5>
+                  <p class="dark:opacity-80">Planifiez et suivez vos consultations en toute simplicit&eacute;.</p>
+                </div>
+              </div>
+              <button btn-next class="absolute z-10 w-10 h-10 p-2 text-lg text-white border-none opacity-50 cursor-pointer hover:opacity-100 far fa-chevron-right active:scale-110 top-6 right-4"></button>
+              <button btn-prev class="absolute z-10 w-10 h-10 p-2 text-lg text-white border-none opacity-50 cursor-pointer hover:opacity-100 far fa-chevron-left active:scale-110 top-6 right-16"></button>
+            </div>
+          </div>
+
+          <div class="w-full max-w-full px-3 mt-6 lg:w-7/12 lg:flex-none lg:mt-0">
+            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="p-4 pb-0 mb-0 rounded-t-4">
+                <div class="flex justify-between">
+                  <h6 class="mb-2 dark:text-white">Mes Informations</h6>
+                </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="items-center w-full mb-4 align-top border-collapse border-gray-200 dark:border-white/40">
+                  <tbody id="patient-table-body">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3: Appointments & Recent Activity -->
+        <div class="flex flex-wrap mt-6 -mx-3">
+          <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-7/12 lg:flex-none">
+            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="p-4 pb-0 rounded-t-4">
+                <h6 class="mb-0 dark:text-white">Prochains Rendez-vous</h6>
+              </div>
+              <div class="flex-auto p-4">
+                <ul id="categories-list" class="flex flex-col pl-0 mb-0 rounded-lg">
+                  <li class="relative flex justify-between py-2 pr-4 mb-2 border-0 rounded-lg text-inherit">
+                    <div class="flex items-center">
+                      <div class="inline-block w-8 h-8 mr-4 text-center text-black bg-center shadow-sm fill-current stroke-none bg-gradient-to-tl from-zinc-800 to-zinc-700 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 rounded-xl">
+                        <i class="text-white ni ni-mobile-button relative top-0.75 text-xxs"></i>
+                      </div>
+                      <div class="flex flex-col">
+                        <h6 class="mb-1 text-sm leading-normal text-slate-700 dark:text-white">Aucun rendez-vous</h6>
+                        <span class="text-xs leading-tight dark:text-white/80">Les prochains rendez-vous appara&icirc;tront ici</span>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-full max-w-full px-3 mt-0 lg:w-5/12 lg:flex-none">
+            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="p-4 pb-0 rounded-t-4">
+                <h6 class="mb-0 dark:text-white">Activit&eacute; r&eacute;cente</h6>
+              </div>
+              <div class="flex-auto p-4">
+                <ul class="flex flex-col pl-0 mb-0 rounded-lg">
+                  <li class="relative flex justify-between py-2 pr-4 mb-2 border-0 rounded-lg text-inherit">
+                    <div class="flex items-center">
+                      <div class="inline-block w-8 h-8 mr-4 text-center text-black bg-center shadow-sm fill-current stroke-none bg-gradient-to-tl from-teal-500 to-cyan-500 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 rounded-xl">
+                        <i class="text-white ni ni-check-bold relative top-0.75 text-xxs"></i>
+                      </div>
+                      <div class="flex flex-col">
+                        <h6 class="mb-1 text-sm leading-normal text-slate-700 dark:text-white">Consultation termin&eacute;e</h6>
+                        <span class="text-xs leading-tight dark:text-white/80">Votre dernier suivi m&eacute;dical</span>
+                      </div>
+                    </div>
+                    <div class="flex">
+                      <span class="text-xs text-slate-400 dark:text-white/60">R&eacute;cent</span>
+                    </div>
+                  </li>
+                  <li class="relative flex justify-between py-2 pr-4 mb-2 border-0 rounded-lg text-inherit">
+                    <div class="flex items-center">
+                      <div class="inline-block w-8 h-8 mr-4 text-center text-black bg-center shadow-sm fill-current stroke-none bg-gradient-to-tl from-orange-500 to-yellow-500 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 rounded-xl">
+                        <i class="text-white ni ni-calendar-grid-58 relative top-0.75 text-xxs"></i>
+                      </div>
+                      <div class="flex flex-col">
+                        <h6 class="mb-1 text-sm leading-normal text-slate-700 dark:text-white">Rendez-vous &agrave; venir</h6>
+                        <span class="text-xs leading-tight dark:text-white/80">Consultez votre agenda</span>
+                      </div>
+                    </div>
+                    <div class="flex">
+                      <span class="text-xs text-slate-400 dark:text-white/60">&Agrave; venir</span>
+                    </div>
+                  </li>
+                  <li class="relative flex justify-between py-2 pr-4 border-0 rounded-lg text-inherit">
+                    <div class="flex items-center">
+                      <div class="inline-block w-8 h-8 mr-4 text-center text-black bg-center shadow-sm fill-current stroke-none bg-gradient-to-tl from-blue-600 to-blue-400 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 rounded-xl">
+                        <i class="text-white ni ni-paper-diploma relative top-0.75 text-xxs"></i>
+                      </div>
+                      <div class="flex flex-col">
+                        <h6 class="mb-1 text-sm leading-normal text-slate-700 dark:text-white">Document ajout&eacute;</h6>
+                        <span class="text-xs leading-tight dark:text-white/80">Nouveau document dans votre dossier</span>
+                      </div>
+                    </div>
+                    <div class="flex">
+                      <span class="text-xs text-slate-400 dark:text-white/60">Nouveau</span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="pt-4">
+          <div class="w-full px-6 mx-auto">
+            <div class="flex flex-wrap items-center -mx-3 lg:justify-between">
+              <div class="w-full max-w-full px-3 mt-0 mb-6 shrink-0 lg:mb-0 lg:w-1/2 lg:flex-none">
+                <div class="text-sm leading-normal text-center text-slate-500 lg:text-left">
+                  &copy; <script>document.write(new Date().getFullYear() + ",");</script>
+                  Mon Espace Sant&eacute; - Plateforme de soins
+                </div>
+              </div>
+              <div class="w-full max-w-full px-3 mt-0 shrink-0 lg:w-1/2 lg:flex-none">
+                <ul class="flex flex-wrap justify-center pl-0 mb-0 list-none lg:justify-end">
+                  <li class="nav-item">
+                    <a href="javascript:;" class="block px-4 pt-0 pb-1 text-sm font-normal transition-colors ease-in-out text-slate-500">Accueil</a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="javascript:;" class="block px-4 pt-0 pb-1 text-sm font-normal transition-colors ease-in-out text-slate-500">Confidentialit&eacute;</a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="javascript:;" class="block px-4 pt-0 pb-1 text-sm font-normal transition-colors ease-in-out text-slate-500">Contact</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </main>
+
+    <!-- ===== CONFIGURATOR ===== -->
+    <div fixed-plugin>
+      <a fixed-plugin-button class="fixed px-4 py-2 text-xl bg-white shadow-lg cursor-pointer bottom-8 right-8 z-990 rounded-circle text-slate-700">
+        <i class="py-2 pointer-events-none fa fa-cog"></i>
+      </a>
+      <div fixed-plugin-card class="z-sticky backdrop-blur-2xl backdrop-saturate-200 dark:bg-slate-850/80 shadow-3xl w-90 ease -right-90 fixed top-0 left-auto flex h-full min-w-0 flex-col break-words rounded-none border-0 bg-white/80 bg-clip-border px-2.5 duration-200">
+        <div class="px-6 pt-4 pb-0 mb-0 border-b-0 rounded-t-2xl">
+          <div class="float-left">
+            <h5 class="mt-4 mb-0 dark:text-white">Configuration</h5>
+            <p class="dark:text-white dark:opacity-80">Personnalisez votre affichage.</p>
+          </div>
+          <div class="float-right mt-6">
+            <button fixed-plugin-close-button class="inline-block p-0 mb-4 text-sm font-bold leading-normal text-center uppercase align-middle transition-all ease-in bg-transparent border-0 rounded-lg shadow-none cursor-pointer hover:-translate-y-px tracking-tight-rem bg-150 bg-x-25 active:opacity-85 dark:text-white text-slate-700">
+              <i class="fa fa-close"></i>
+            </button>
+          </div>
+        </div>
+        <hr class="h-px mx-0 my-1 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-white dark:to-transparent" />
+        <div class="flex-auto p-6 pt-0 overflow-auto sm:pt-4">
+          <div>
+            <h6 class="mb-0 dark:text-white">Couleurs du sidebar</h6>
+          </div>
+          <a href="javascript:void(0)">
+            <div class="my-2 text-left" sidenav-colors>
+              <span class="py-2.2 text-xs rounded-circle h-5.6 mr-1.25 w-5.6 ease-in-out bg-gradient-to-tl from-blue-500 to-violet-500 relative inline-block cursor-pointer whitespace-nowrap border border-solid border-slate-700 text-center align-baseline font-bold uppercase leading-none text-white transition-all duration-200 hover:border-slate-700" active-color data-color="blue" onclick="sidebarColor(this)"></span>
+              <span class="py-2.2 text-xs rounded-circle h-5.6 mr-1.25 w-5.6 ease-in-out bg-gradient-to-tl from-zinc-800 to-zinc-700 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 relative inline-block cursor-pointer whitespace-nowrap border border-solid border-white text-center align-baseline font-bold uppercase leading-none text-white transition-all duration-200 hover:border-slate-700" data-color="gray" onclick="sidebarColor(this)"></span>
+              <span class="py-2.2 text-xs rounded-circle h-5.6 mr-1.25 w-5.6 ease-in-out bg-gradient-to-tl from-teal-500 to-cyan-500 relative inline-block cursor-pointer whitespace-nowrap border border-solid border-white text-center align-baseline font-bold uppercase leading-none text-white transition-all duration-200 hover:border-slate-700" data-color="cyan" onclick="sidebarColor(this)"></span>
+              <span class="py-2.2 text-xs rounded-circle h-5.6 mr-1.25 w-5.6 ease-in-out bg-gradient-to-tl from-emerald-500 to-teal-400 relative inline-block cursor-pointer whitespace-nowrap border border-solid border-white text-center align-baseline font-bold uppercase leading-none text-white transition-all duration-200 hover:border-slate-700" data-color="emerald" onclick="sidebarColor(this)"></span>
+              <span class="py-2.2 text-xs rounded-circle h-5.6 mr-1.25 w-5.6 ease-in-out bg-gradient-to-tl from-orange-500 to-yellow-500 relative inline-block cursor-pointer whitespace-nowrap border border-solid border-white text-center align-baseline font-bold uppercase leading-none text-white transition-all duration-200 hover:border-slate-700" data-color="orange" onclick="sidebarColor(this)"></span>
+              <span class="py-2.2 text-xs rounded-circle h-5.6 mr-1.25 w-5.6 ease-in-out bg-gradient-to-tl from-red-600 to-orange-600 relative inline-block cursor-pointer whitespace-nowrap border border-solid border-white text-center align-baseline font-bold uppercase leading-none text-white transition-all duration-200 hover:border-slate-700" data-color="red" onclick="sidebarColor(this)"></span>
+            </div>
+          </a>
+          <div class="mt-4">
+            <h6 class="mb-0 dark:text-white">Type de sidebar</h6>
+            <p class="leading-normal dark:text-white dark:opacity-80 text-sm">Choisissez entre deux styles.</p>
+          </div>
+          <div class="flex">
+            <button transparent-style-btn class="inline-block w-full px-4 py-2.5 mb-2 font-bold leading-normal text-center text-white capitalize align-middle transition-all bg-teal-500 border border-transparent border-solid rounded-lg cursor-pointer text-sm xl-max:cursor-not-allowed xl-max:opacity-65 xl-max:pointer-events-none xl-max:bg-gradient-to-tl xl-max:from-teal-500 xl-max:to-cyan-500 xl-max:text-white xl-max:border-0 hover:-translate-y-px dark:cursor-not-allowed dark:opacity-65 dark:pointer-events-none dark:bg-gradient-to-tl dark:from-teal-500 dark:to-cyan-500 dark:text-white dark:border-0 hover:shadow-xs active:opacity-85 ease-in tracking-tight-rem shadow-md bg-150 bg-x-25 bg-gradient-to-tl from-teal-500 to-cyan-500 hover:border-teal-500" data-class="bg-transparent" active-style>Clair</button>
+            <button white-style-btn class="inline-block w-full px-4 py-2.5 mb-2 ml-2 font-bold leading-normal text-center text-teal-500 capitalize align-middle transition-all bg-transparent border border-teal-500 border-solid rounded-lg cursor-pointer text-sm xl-max:cursor-not-allowed xl-max:opacity-65 xl-max:pointer-events-none xl-max:bg-gradient-to-tl xl-max:from-teal-500 xl-max:to-cyan-500 xl-max:text-white xl-max:border-0 hover:-translate-y-px dark:cursor-not-allowed dark:opacity-65 dark:pointer-events-none dark:bg-gradient-to-tl dark:from-teal-500 dark:to-cyan-500 dark:text-white dark:border-0 hover:shadow-xs active:opacity-85 ease-in tracking-tight-rem shadow-md bg-150 bg-x-25 bg-none hover:border-teal-500" data-class="bg-white">Sombre</button>
+          </div>
+          <p class="block mt-2 leading-normal dark:text-white dark:opacity-80 text-sm xl:hidden">Modification du type de sidebar disponible uniquement sur desktop.</p>
+          <div class="flex my-4">
+            <h6 class="mb-0 dark:text-white">Navbar fixe</h6>
+            <div class="block pl-0 ml-auto min-h-6">
+              <input navbarFixed class="rounded-10 duration-250 ease-in-out after:rounded-circle after:shadow-2xl after:duration-250 checked:after:translate-x-5.3 h-5 relative float-left mt-1 ml-auto w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-teal-500/95 checked:bg-teal-500/95 checked:bg-none checked:bg-right" type="checkbox" />
+            </div>
+          </div>
+          <hr class="h-px my-6 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-white dark:to-transparent" />
+          <div class="flex mt-2 mb-12">
+            <h6 class="mb-0 dark:text-white">Mode sombre / clair</h6>
+            <div class="block pl-0 ml-auto min-h-6">
+              <input dark-toggle class="rounded-10 duration-250 ease-in-out after:rounded-circle after:shadow-2xl after:duration-250 checked:after:translate-x-5.3 h-5 relative float-left mt-1 ml-auto w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-teal-500/95 checked:bg-teal-500/95 checked:bg-none checked:bg-right" type="checkbox" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../assets/js/plugins/perfect-scrollbar.min.js" async></script>
+    <script src="../assets/js/argon-dashboard-tailwind.js?v=1.0.1" async></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      function _(id) { return document.getElementById(id); }
+
+      var token = localStorage.getItem('token');
+      var headers = {};
+      if (token) { headers['Authorization'] = 'Bearer ' + token; }
+
+      fetch('/api/argon/data', { headers: headers })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
+          if (!data) { data = { patient: {}, prochainsRdvs: [], dernieresConsultations: [], documentsRecents: [] }; }
+
+          var p = data.patient || {};
+          var nomComplet = (p.prenom || '') + ' ' + (p.nom || '');
+          nomComplet = nomComplet.trim() || 'Patient';
+          document.title = 'Tableau de bord' + (nomComplet !== 'Patient' ? ' - ' + nomComplet : '');
+
+          // Sidebar
+          var sName = _('sidebar-name');
+          if (sName) sName.textContent = nomComplet;
+          var sEmail = _('sidebar-email');
+          if (sEmail) sEmail.textContent = p.email || '';
+
+          // Stats
+          _('stat-1') && (_('stat-1').textContent = data.prochainsRdvs ? data.prochainsRdvs.length : 0);
+          _('stat-1-sub') && (_('stat-1-sub').textContent = '\\u00E0 venir');
+          _('stat-2') && (_('stat-2').textContent = data.dernieresConsultations ? data.dernieresConsultations.length : 0);
+          _('stat-2-sub') && (_('stat-2-sub').textContent = 'r\\u00E9centes');
+          _('stat-3') && (_('stat-3').textContent = data.documentsRecents ? data.documentsRecents.length : 0);
+          _('stat-3-sub') && (_('stat-3-sub').textContent = 'r\\u00E9cents');
+          _('stat-4') && (_('stat-4').textContent = p.groupeSanguin || '--');
+          _('stat-4-sub') && (_('stat-4-sub').textContent = p.genre ? p.genre.replace('HOMME','Homme').replace('FEMME','Femme') : '--');
+
+          // Carousel
+          var cTitle = _('carousel-title');
+          if (cTitle) cTitle.textContent = 'Bienvenue' + (nomComplet !== 'Patient' ? ', ' + nomComplet : '');
+          var cText = _('carousel-text');
+          if (cText) cText.textContent = 'Ceci est votre espace sant\\u00E9. Consultez vos informations et g\\u00E9rez vos rendez-vous.';
+
+          // Patient info table
+          var tbody = _('patient-table-body');
+          if (tbody) {
+            tbody.innerHTML =
+              '<tr><td class="p-2 align-middle bg-transparent border-b w-3/10 whitespace-nowrap dark:border-white/40">' +
+                '<div class="flex items-center px-2 py-1"><div><i class="ni ni-single-02 text-lg text-teal-500"></i></div>' +
+                '<div class="ml-6"><p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-60">Nom complet</p>' +
+                '<h6 class="mb-0 text-sm leading-normal dark:text-white">' + nomComplet + '</h6></div></div></td>' +
+              '<td class="p-2 align-middle bg-transparent border-b whitespace-nowrap dark:border-white/40"><div class="text-center">' +
+                '<p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-60">Email</p>' +
+                '<h6 class="mb-0 text-sm leading-normal dark:text-white">' + (p.email || '--') + '</h6></div></td>' +
+              '<td class="p-2 align-middle bg-transparent border-b whitespace-nowrap dark:border-white/40"><div class="text-center">' +
+                '<p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-60">T\\u00E9l\\u00E9phone</p>' +
+                '<h6 class="mb-0 text-sm leading-normal dark:text-white">' + (p.telephone || '--') + '</h6></div></td>' +
+              '<td class="p-2 text-sm leading-normal align-middle bg-transparent border-b whitespace-nowrap dark:border-white/40"><div class="flex-1 text-center">' +
+                '<p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-60">N\\u00B0 S\\u00E9curit\\u00E9 Sociale</p>' +
+                '<h6 class="mb-0 text-sm leading-normal dark:text-white">' + (p.numeroSecuriteSociale || '--') + '</h6></div></td></tr>' +
+              '<tr><td class="p-2 align-middle bg-transparent border-b w-3/10 whitespace-nowrap dark:border-white/40">' +
+                '<div class="flex items-center px-2 py-1"><div><i class="ni ni-calendar-grid-58 text-lg text-orange-500"></i></div>' +
+                '<div class="ml-6"><p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-60">Date de naissance</p>' +
+                '<h6 class="mb-0 text-sm leading-normal dark:text-white">' + (p.dateNaissance || '--') + '</h6></div></div></td>' +
+              '<td class="p-2 align-middle bg-transparent border-b whitespace-nowrap dark:border-white/40"><div class="text-center">' +
+                '<p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-60">Genre</p>' +
+                '<h6 class="mb-0 text-sm leading-normal dark:text-white">' + ((p.genre || '').replace('HOMME','Homme').replace('FEMME','Femme') || '--') + '</h6></div></td>' +
+              '<td class="p-2 align-middle bg-transparent border-b whitespace-nowrap dark:border-white/40"><div class="text-center">' +
+                '<p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-60">Groupe sanguin</p>' +
+                '<h6 class="mb-0 text-sm leading-normal dark:text-white">' + (p.groupeSanguin || '--') + '</h6></div></td>' +
+              '<td class="p-2 text-sm leading-normal align-middle bg-transparent border-b whitespace-nowrap dark:border-white/40"><div class="flex-1 text-center">' +
+                '<p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-60">Allergies</p>' +
+                '<h6 class="mb-0 text-sm leading-normal dark:text-white">' + (p.allergies || 'Aucune') + '</h6></div></td></tr>';
+          }
+
+          // Appointments list
+          var catList = _('categories-list');
+          if (catList) {
+            if (data.prochainsRdvs && data.prochainsRdvs.length) {
+              catList.innerHTML = '';
+              data.prochainsRdvs.forEach(function (rdv) {
+                var li = document.createElement('li');
+                li.className = 'relative flex justify-between py-2 pr-4 mb-2 border-0 rounded-lg text-inherit';
+                li.innerHTML =
+                  '<div class="flex items-center">' +
+                    '<div class="inline-block w-8 h-8 mr-4 text-center text-black bg-center shadow-sm fill-current stroke-none bg-gradient-to-tl from-teal-500 to-cyan-500 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 rounded-xl">' +
+                      '<i class="text-white ni ni-calendar-grid-58 relative top-0.75 text-xxs"></i></div>' +
+                    '<div class="flex flex-col">' +
+                      '<h6 class="mb-1 text-sm leading-normal text-slate-700 dark:text-white">' + (rdv.motif || 'Consultation') + '</h6>' +
+                      '<span class="text-xs leading-tight dark:text-white/80">' + (rdv.medecin || 'M\\u00E9decin') + ' \\u2014 ' + (rdv.dateHeure || rdv.date || '') + '</span>' +
+                    '</div></div>';
+                catList.appendChild(li);
+              });
+            }
+          }
+        })
+        .catch(function () {});
+    });
+    </script>
+  </body>
+</html>

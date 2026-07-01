@@ -76,4 +76,6 @@ class RendezVous
 
     public function getConsultation(): ?Consultation { return $this->consultation; }
     public function setConsultation(?Consultation $consultation): static { $this->consultation = $consultation; return $this; }
+
+    public function __toString(): string { return 'RDV #' . $this->getId() . ' - ' . $this->getPatient() . ' - ' . ($this->getDateHeure()?->format('d/m/Y H:i') ?? ''); }
 }

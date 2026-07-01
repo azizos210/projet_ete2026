@@ -120,4 +120,6 @@ class Consultation
 
     public function getEvaluation(): ?Evaluation { return $this->evaluation; }
     public function setEvaluation(?Evaluation $e): static { $this->evaluation = $e; return $this; }
+
+    public function __toString(): string { return 'Consultation #' . $this->getId() . ' - ' . $this->getMedecin(); }
 }
